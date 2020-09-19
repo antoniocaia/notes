@@ -1,13 +1,16 @@
-# LCI (Draft)
+# LCI (Draft) <!-- omit in toc -->
 
-- [LCI (Draft)](#lci-draft)
 - [Lezione 1](#lezione-1)
 	- [Compilatore](#compilatore)
 	- [Front end](#front-end)
 	- [Ottimizzatore](#ottimizzatore)
 	- [Back end](#back-end)
-- [LEZIONE 2](#lezione-2)
+- [Lezione 2](#lezione-2)
 	- [Linguaggi formali](#linguaggi-formali)
+	- [Linguaggi regolari](#linguaggi-regolari)
+- [Lezione 3 (cont)](#lezione-3-cont)
+	- [Pumping Lemma](#pumping-lemma)
+	- [Linguagggi Context Free](#linguagggi-context-free)
 
 
 
@@ -45,7 +48,7 @@ composto da:
 
 Spesso bisogna scendere a compromessi tra memoria e tempo.
 
-# LEZIONE 2
+# Lezione 2
 
 ## Linguaggi formali
 
@@ -80,18 +83,25 @@ Su linguaggi si possono fare le seguenti operazioni: Unione Intersezione Differe
 |     3      |      P       |
 |     2      |      P       |
 |     1      | PSPACE (NP)  |
-|     0      | undecidable) |
+|     0      | undecidable  |
 
 
 
-**Linguaggi regolari:**
+## Linguaggi regolari
+
 Possibili rappresentazioni:
-- Grammatica regolare  
+- Grammatica regolare (RG)  
 - Determinist finite automata (DFA)  
 - Non-determinist finite automata (NFA)  
 - Non-determinist finite automata epsilon (epsilon-NFA)  
 - Regular Expression (RE)  
 
+
+**Equivalenze**  
+````
+RE <- DFA <-> NFA <-> RG  
+RE -> epsilon-NFA <-> NFA
+````
 
 **Grammatica regolare:**  
 G = (E, N, S, P)  
@@ -99,6 +109,7 @@ ES:
 L = { a^n b^n | n,m > 0 }  
 S->aS|B  
 B->bB|b  
+Per ogni regola, un solo simbolo terminale, sempre o solo a dx o solo a sx, e un solo simbolo non terminale.
 
 
 **Automa finito deterministico:**  
@@ -114,8 +125,50 @@ Chiusura transitiva: funzione di transizione definita per una stringa ricorsivam
 Data una GRAMMATICA REGOLARE posso costruire un NFA equivalente e viceversa.
 
 **RG -> NFA**  
-Per ogni simbolo terminale definisco un nuovo stato + un nuovo stato F (finale).
-Per ogni regola della grammatica costruisco un collegamento tra due stati.
+Creo uno stato per ogni simbolo non terminale + uno stato F (finale)
+Per ogni regola della grammatica costruisco un collegamento tra due stati in base al simbolo non-terminale. Se non c'è simbolo terminale, vado in F.
 
-ETC
 
+**RG <- NFA**  
+Per ogni arco del grafo, deinisco una regola. Per gli stati non finali ogni stato diventa un simbolo non terminale; per gli stati finali allora aggiungo una regola in cui non campaiono simboli non finali.
+
+**NFA -> DFA**  
+Definiamo nuovi stati in base a tutte le possibili combinazioni di stati già esistenti. (con q0 e q1 otterrei q0, q1, q0q1, vuoto). 
+Osservando l'automa iniziale, definisco le nuove transazioni, e se con uno stesso valore una transazione andava in più stati diversi, adesso va nello stato descritto dalla combinazione di quegli stati (q0,a -> q0 e q1,a -> q1 diventa q0,a -> q0q1).  
+Per quanto riguarda gli stati generati dalle combinazioni di stati, è necessario unire i "risultati delle transazioni":  
+Se q0,a -> q0 e q1,a -> q1 allora lo stato q0q1 con q0q1,a -> q0q1. Perchè? La sua "parte q0" con a lo mandava in q0, la "parte q1" lo mandava in q1, mettendo insisme i risultati si ha q0q1. Procedere per tutti gli stati.
+
+**NFA <- DFA**  
+Ez
+
+**Epsilon chiusura e e-NFA**
+L'epsilon chiusura di uno stato è l'insieme di stati raggiungibili con epsilon transizioni U all'epsilon chiusura di tali stati. In soldoni, è l'insime di stati che posso raggiungere utilizzando solo epsilon transazioni.
+
+**e-NFA -> NFA**  
+Basta considerare gli stati connessi da e-transizioni come "lo stesso stato". 
+Quindi guardo come si comportano tutti gli stati appartenenti alla mia e-chiusura.
+
+# Lezione 3 (cont)
+
+**DFA -> RE**
+Eliminare gli stati, rimpiazzando gli archi con espressioni regolari includendo il comportamento dello stato eliminato. Idealmente vogliamo ottenere un solo stato finale, un solo stato iniziale. Nel caso di più stati finali, analizzarne uno alla volta singolarmente e poin + i risultati.
+
+**RE -> e-NFA**
+Guardare le slide per le regole meccaniche.
+
+## Pumping Lemma
+
+Il pumping lemma è utilizzato per determinare se un linguaggio non è regolare. In genre è applicato su i linguaggu regolari.
+
+```
+Sia L regolare, allora esite un k tc per ogni z appartenente a L 
+|z| >= k 
+z = uvw con |uv| <= k, |v| > 0
+
+tc per ogni i in N 
+u(v^i)w appartiene a L
+```
+
+Il pumping lemma definisce una condizione di esistenza, trovando quindi un solo caso che non rispetta il PL dimostriamo che il linguaggio non è regolare.
+
+## Linguagggi Context Free

@@ -1,7 +1,5 @@
-# IR Note (DRAFT)
+# IR (DRAFT) <!-- omit in toc -->
 
-- [IR Note (DRAFT)](#ir-note-draft)
-	- [Info](#info)
 - [Lezione 1](#lezione-1)
 	- [Intro](#intro)
 	- [Boolean retrieval model](#boolean-retrieval-model)
@@ -166,6 +164,9 @@ E' possibile specificare un campo durante la ricerca con ad esempio :
 Per realizzare ciò è necessario apportare delle modifiche:  
 - por ogni termine, creare una lista indipendente per ciascuno dei suo campi.
 - mantenere una unica lista, ma specificare insieme all'ID del documento in quali campi appare il termine
+
+
+# TODO <!-- omit in toc -->
 
 ## Crwaler
 
