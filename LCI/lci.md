@@ -11,6 +11,8 @@
 - [Lezione 3 (cont)](#lezione-3-cont)
 	- [Pumping Lemma](#pumping-lemma)
 	- [Linguagggi Context Free](#linguagggi-context-free)
+- [Lezione 3](#lezione-3)
+	- [Analisi lessicalse](#analisi-lessicalse)
 
 
 
@@ -158,7 +160,7 @@ Guardare le slide per le regole meccaniche.
 
 ## Pumping Lemma
 
-Il pumping lemma è utilizzato per determinare se un linguaggio non è regolare. In genre è applicato su i linguaggu regolari.
+Il pumping lemma è utilizzato per determinare se un linguaggio non è regolare. 
 
 ```
 Sia L regolare, allora esite un k tc per ogni z appartenente a L 
@@ -172,3 +174,60 @@ u(v^i)w appartiene a L
 Il pumping lemma definisce una condizione di esistenza, trovando quindi un solo caso che non rispetta il PL dimostriamo che il linguaggio non è regolare.
 
 ## Linguagggi Context Free
+
+// TODO
+
+- automi a pila
+- pumping lemma per CF
+- proprietà
+
+# Lezione 3
+
+A noi interessano solo grammatiche regolari e grammatiche context free, le altre sono troppo complesse (e quindi costose).
+
+Grammatiche regolari -> scanner
+Grammatiche contex free -> parser
+
+## Analisi lessicalse
+
+Verificare che il codice sorgente sia composto da termini che appartengano al linguaggio e classificare i token in base alla loro funzione.
+
+Un lexical analyser può essere realizzato "a mano" o automaticamente.
+
+Scrivere il codice per uno scanner: 
+```
+Char ← next character
+State ← s0
+
+while (Char ≠ EOF)
+	Next ← δ(State,Char)
+ 	Act ← α(State,Char)
+ 	perform action Act
+ 	State ← Next
+ 	Char ← next character 
+
+if (State is a final state)
+	then report success
+	else report failure
+ ```
+
+δ è codificata mediante una tabella, permettendo l'accesso con costo O(1). 
+α, strettamente legata a δ, restituisce informazioni aggiuntive, come il tipo di token che stiamo costruendo.
+
+To convert a specification into code:
+1. Write down the RE for the input language
+2. Build a ε-NFA collecting all the NFA for the RE
+3. Build a NFA corresponding to the ε-NFA
+4. Build the DFA that simulates the NFA
+5. Systematically minimise the DFA
+6. **Turn it into code**
+
+Tre possibili approcci per il passaggio a codice:
+- Tabella delle transizioni
+- Direct code: corrispondenza tra stati e codice (un po' come se creassi un oggetto o funzione per simulare il comportamento di ciascun stato, ovvero le sue transizioni)
+- hand coded
+
+Ciò che cambia è la "tabella delle transizioni".  
+In ogni caso devono tutti e tre gli approcci scorrere carattere per carattere, riconoscere una parola (nel caso lo stato non abbia archi e sia finale) oppure effettuare il roll back nel caso di bisogno.
+
+Scanner "tokenizza" il source code abbinando ad ogni parola un ruolo, il parser costruisce l'albero di derivazione.

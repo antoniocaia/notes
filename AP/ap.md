@@ -1,12 +1,26 @@
 # Advanced Programming (DRAFT) <!-- omit in toc --> 
 
-- [Abstract machine](#abstract-machine)
+- [Ch.1 Abstract machine e PL](#ch1-abstract-machine-e-pl)
+	- [Da sapere](#da-sapere)
+	- [Abstract Machine](#abstract-machine)
 	- [Interpreter](#interpreter)
-	- [Implementazione di un linguaggio](#implementazione-di-un-linguaggio)
-		- [Implementazione di un AB](#implementazione-di-un-ab)
-		- [Implementazione puramente interpretata e compilata](#implementazione-puramente-interpretata-e-compilata)
+	- [Implementazione di un AB](#implementazione-di-un-ab)
+	- [Implementazione puramente interpretata e compilata](#implementazione-puramente-interpretata-e-compilata)
+- [Ch.2](#ch2)
+	- [Runtime system and JVM](#runtime-system-and-jvm)
 
-# Abstract machine
+# Ch.1 Abstract machine e PL
+
+## Da sapere
+
+- Reading: Ch. 1 of Programming Languages: Principles and Paradigms by M. Gabbrielli and S. Martini
+- Syntax, Semantics and Pragmatics of PLs
+- Programming languages and Abstract Machines
+- Interpretation vs. Compilation vs. Mixed
+- Examples of Virtual Machines
+- Examples of Compilation Schemes
+
+## Abstract Machine
 
 Una abstract machine (AB) è intuitivamente una astrazione di un computer fisico. Si tratta di un sistema che eseguendo opportuni algoritmi per sfruttare istruzione e costrutti definiti da un determinato linguaggio (L).
 
@@ -21,6 +35,7 @@ Una AB è composta da:
 - Operation
 
 Una *AB per L (Ml)* è l'insieme di data structures e algoritmi responsabili di memorizzare ed eseguire dei programmi scritti in L.
+
 
 ## Interpreter
 
@@ -39,12 +54,24 @@ Il ciclo di esecuzione di un generico interpreter è il seguente:
 
 Data una Ml, il linguaggio che il suo interpreter è in grado di comprendere prende il nome di *linguaggio macchina di Ml*
 
-## Implementazione di un linguaggio
+**Implementazione di un linguaggio**  
 
 Ml è  un dispositivo che consente l'esecuzione di programmi scritti nel linguaggio L. A una Ml corrisponde un solo L, viceversa a un linguaggio L corrispondono infinite Ml (implementazioni diverse dell'interpreter).
 
-### Implementazione di un AB
+## Implementazione di un AB
 
+Il miglior approccio quando si implementa una AB è utilizzare un sistema gerarchico, favorendo l'astrazione (ogni livello dovrebbe poter vedere solo quelllo immediatamente sottostante) e la riusabilità, in mododo da non dover reimplementare i livelli più bassi.  
+Una tipica gerarchia:
+- E-business machine (applicazione web)
+- Wb service machine (linguaggio per web servers)
+- Web machine (browser)
+- High level machine (java)
+- Intermediate machine (java byte code)
+- OS machine
+- Firmware
+- hardware machine
+
+Possibili implementazioni:
 - Implementazione mediante Hardware:  
 E' sempre possibile implementare tramite hardware una macchina fisica il cui linguaggio macchina coincida con L. SI tratta di realizzare algoritmi e data structure tramite componenti fisiche.
 Avendo una corrsipondenza diretta tra linguaggio e hardware, l'esecuzione dei programmi risulta estremamente veloce. Tuttavia, maggiore è la complessità di L (quanto è ad "alto livello") tanto più diventa complessa e rigida l'implementazione di Ml, precludendo insoltre la possibilità di aggiornare Ml nel caso di modifiche ad L.
@@ -56,7 +83,7 @@ Per implementare una Ml è possibile usare un linguaggio già esistente L' il cu
 
 
 
-### Implementazione puramente interpretata e compilata
+## Implementazione puramente interpretata e compilata
 
 Sia Mo la host machine e Lo il linguaggio ad essa asociato. Implementare il linguaggi L affinchè sia eseguibile su Mo richiede che Ml sia scritto usando Lo.
 
@@ -64,91 +91,32 @@ Sia Mo la host machine e Lo il linguaggio ad essa asociato. Implementare il ling
 	- programma in L
 	- interprete per L, scritto in Lo
 	Un approccio puramente interpretato richiede semplicemenete un interprete scritto in Lo in grado di eseguire il programma sulla Mo.
-- puramente interpretato:
+- puramente compilato:
   - programma in L
   - compilatore da L in LO (esecuzione sulla abstract machine???)
   - Programma compilato in LO
   - Per il puramente compilato il programma viene prima trasformato da L in Lo, e successivamente eseguito sulla Mo
 
+**PRO e CONTRO**  
 Puramente interpretato: lento, ma facilemnte analizzabile a run time (debuggin tools)
 Puramente compilato: veloce, ma difficilmente analizzabile a runtime
 
-# TODO <!-- omit in toc -->
+Un approccio puramente interpretato o puramente compilato non è ottimale. Per esempio: alcune parti di codice, come la gestione IO, non sono mai compilate a causa di problemi di espansione del codice. Il codiece "problematiche" viene quindi sostituito con procedure (non compilate) e sarà l'interprete a gestirle ed eseguirle.
+La soluzione è usare un approccio ibrido in cui il codice viene compilato in un linguaggio intermedio e successivamente interpretato.  
+I vantaggi di un linguaggio ibrido (come Java) sono:
+- portabilità
+- interoperabilità
 
-Frameworks: reusable abstraction of code wrapped in a well defined API
-
-Inversion of controll: the program flows is dictate by framework.
-
-Design pattern are a "precooked" solution to a problem. Design pattern are generic solution to a ricorrent problem.
-
-Genericamente, un design pattern può essere usato sia per progettare un'intera applicazione, oppure per risolvere un problema generale in un contesto preciso, oppure consistere in un design riusabile come le hashtable, linked list. Ergo qualsiasi livello di astrazione.
-
-Design pattern are more abstracted than frameworks. Design patterns are "smaller": framework contains DP, reverse is not true.
-
-## Programming Language <!-- omit in toc -->
-
-Defined by syntax, semantics, and pragmatics.  
-- Syntax: describe the grammar how to write correctly the program.   
-- semantics: generally in natural language. You can use a formal approch, but it's hard and long, so you normally you don't explain all the PL. K framework gives you the semantic of a language  
-- pragmatic: includes coding convention, guidilens for elegant code. Paradigms is a style of programming, charactrized by particular concept and abstraction.
-List of paradigm: imperative, OO, concurrent, functional, logic ... Of course more paradigm can coexist at the same time. And don't categorize lp by paradigm.
-
-ES if cinvention: 
-java/codeconvention.pdf   
-google/styleguide/javaguide.html
-
-
-## Abstract Machine <!-- omit in toc -->
-Every Language as a Abstract Machine (AM).  
-Memory: include the programs and the data  
-
-Interprenter: set of operation and data structere for:
-- primitive data processing
-- Sequence control
-- Data transfer (parameter passing and returning value from fuction)
-- Memory managment (allocation of programs and dat in memory)
-
-General struct of Interpreter (equals for every language more or less):
-
-- fetch instruction
-- decode (and itcheck if arguments are needed)
-- [fetch operands]
-- Execute operations
-- Store the result
-
-Best way to build AM is use hierarchy, giving more abstraction (we hope taht each level can see only the first lower level), so you don't have to reimplement the lower level everytime:
-- hardware
-- firmware
-- OS
-- Intermediate (Java Bytecode)
-- High level (java)
-- web machine (browser)
-- web service machine (language for web service)
-
-
- 
-## Implementig a Programmin Languafge <!-- omit in toc -->
-
-Pro vs Con
-- PRO comp: 
-  - anticipait some thing, like type checking at compile time 
-  - static allocation
-  - static linking
-  - code optimization
-  - Better performance: you waste time at compilation time, but executing is way faster (using hd accelaration)
-- PRO int:
-  - easier debug and test, better diagnostic
-  - procedure can be invoke from command line (WOW)
-  - var can be inspected and modified by a user
-
-[todo what is repl interpreter?]
-
-Using only comp or interp is not good, using both is better.
-IO are never compiled, because they can became HUGE and problematic. So they became procedure, and the interpreter will be the one taking care.
-Compilation is needed for 
-
-Best solution is using an AM intermediate (AMI). So you basically compile the code in an intermediate language (NOT the machine code! ) and an interpreter run it.
 
 You can define a "common intermediate language" (CIL), so you can compile different hight level language and all this languages will be executed by the same infrastructure (Common language infrastructure CLI).  
 Plus, if you create a new language, you don't need a new brand compiler, but you can use the CIL so you compiler will be way easier.  
 In CLI the code CIL is then compiled again and only then executed by an interpreter.
+
+# Ch.2 
+
+## Runtime system and JVM
+
+A PL define an execution model.  
+A runtime ssytem implements part of exececution model, providind support during exec.  
+Runtime support is needed for interpreter and compiler
+

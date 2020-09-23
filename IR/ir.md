@@ -8,7 +8,15 @@
 	- [Skips](#skips)
 	- [Recursive Merge](#recursive-merge)
 	- [Zones](#zones)
-	- [Crwaler](#crwaler)
+	- [Web and web-browsers](#web-and-web-browsers)
+		- [Spam](#spam)
+- [Lezione 3](#lezione-3)
+	- [Crawler](#crawler)
+	- [Life-cycle](#life-cycle)
+	- [Marcator](#marcator)
+	- [Check for page duplicate](#check-for-page-duplicate)
+		- [URL match](#url-match)
+		- [Bloom filter](#bloom-filter)
 
 ## Info
 Paolo Ferragina 
@@ -162,30 +170,122 @@ E' possibile specificare un campo durante la ricerca con ad esempio :
 `((author = Ullman ) AND (text contains automata))`
 
 Per realizzare ciò è necessario apportare delle modifiche:  
-- por ogni termine, creare una lista indipendente per ciascuno dei suo campi.
+- per ogni termine, creare una lista indipendente per ciascuno dei suo campi.
 - mantenere una unica lista, ma specificare insieme all'ID del documento in quali campi appare il termine
 
+## Web and web-browsers
+
+Il web può essere visto come un orientato i cui nodi sono pagine html e gli archi i link che collegano due pagine. Gli archi "entranti" in nodo rappresentano i suoi *in-links* (link che conducono ad una pagina) mentre gli archi uscenti sono definiti *out-links* e rappresentano tutti i collegamente tra un nodo e il resto del web.  
+Il link non rispettano una distribuzione di Poisson, piuttosto danno vita ad un grafo dalla forma di "farfallino", dove distinguiamo 3 macrogruppi:
+- IN: pagine prive di in-links
+- OUT: pagine prive di out-link
+- SCC (strongly connected components): partendo da qualsiasi elemento in ssc è possibile raggiunge qualsiasi degli altri nodi di ssc (esiste sempre un cammino che collega due elementi i ssc).
+
+### Spam
+
+Con *spam* ci si riferisce alla pratica di "ingannare" i web search engine in modo da incrementare il rank di una pagina web.  
+Alcuni engine che sfruttavano la frequenza di determinati termini per rankare le pagine erano facilemnte ingannabili aggiungendo apposite sezioni nella pagina web (il cui testo era dello stesso colore del background, in modo da non disturbare l'utente) in cui aggiungere e ripetere tutti i termini che si volevano usare per "indicizzare" la propria pagina.  
+L'evolversi dei motori di ricerca ha portato alla nascita di nuove tecniche di spam: alcune pagine sono in grado di determinare se una richuesta http proviene da un crawler, e in quel caso forniscono una pagina "fake" da usare per l'indicizzazione. Quando è un utente ad eseguire la richiesta, viene fornito una pagina con contenuti diversi da quelli per l'indicizzazione.
+
+# Lezione 3
+
+## Crawler
+
+Il web crawling è il processo attraverso il quale è possibile raccogliere e indicizzare pagine in web in modo da supportare il lavoro di un mototre di ricerca.
+
+Le caratteristiche che un crawler deve possedere sono molteplici
+- Robusto: essere in grado di riconoscere ed evitare "trappole"
+- Analisi di qualità: il crawler non deve procedere casualmente, ma visitare le pagine migliori per prime
+- Etiquette: gli host in genere specificano all'interno di un file *Robots.txt* cosa è permesso fare al crawler e cosa no. In genere si vuole evitare un sovraccarico del web server, e intervallare l'invio di query. In alcuni casi non si vuole indicizzare determinate pagine.
+- Efficienza: evitare duplication e near-duplication
+
+Quando si fa crawling, le considerazioni da fare sono:
+- Copertura: quanto è grosso il web e quanto ne vogliamo coprire
+- Copertura relativa: la competizioni quanto web indicizza
+
+Infine, quanto spesso fare crawling?
+- freschezza: quanto è cambiata una pagina dall'ultima visita 
+- frequenza: ogni quanto visitare le pagine
+
+
+## Life-cycle
+
+
+Seed Page (SP): pagina contenente gli URLs utilizzabili da un crawler come punto di partenza.
+Frontiers (F): lista di URLs che è necessario visitare.
+Priority Queue (PQ): URLs da valutare
+Assigned Repository (AR): Frontier
+Page Repository (PR):
+
+Un "crawler manager" preleva URL dalla PQ, se la pagina non è stata mai visitata o è stata modificata dall'ultima visita viene inserita in AR.  
+Ogni pagina ha un "downloader": preleva da AR l'URL e scarica e compressa la pagina per salvare il risultato in PR.  
+Il "link extractor" preleva da PR e cerca eventuali link, per inserirli in PQ.
+
+Con che criterio vengono scelte le pagine dall'AR? Dipende dalla policy scelta: BFS, DFS, Random, Popularity driven, Page Rank, topic driven, combined.  
+
+## Marcator
+Marcator è un crawler che segue alcune semplici regole:
+- una sola richiesta alla volta per host, in modo da non sovraccaricare l'host
+- aspettare alcuni secondi tra una query e l'altra 
+- preferire pagine con un alta priorità per il crawling
+
+**Overview:**  
+Un modulo preleva gli URLs nella F per poi distribuirli in K queue, una per ciascun livello di priorità.  
+Un successivo modulo estrare dalle queue gli URLs preferendo quelli con priorità maggiore. Gli URLs sono distribuiti in B queue, dove ogni queue rappresenta un host, le pagine provenenti dallo stesso host vanno nella stessa queue. Ciò permette di regolare gli accessi agli host, evitanto multipli accessi contemporaneamente. Se una queue si "svuota", può essere riassegnata ad un nuovo host.  
+URL selector preleva un URL da ciascuna delle B queue (una pagian per host) e gli assegna ad un min-heap. Il min-Heap si basa su dei time-stamp. Questo time-stamp è calcolata sommando il tempo di esecuzione della pagina precedente (dello stesso host) + un tempo di attesa extra.  
+L'heap restituisce l'url con il tempo minore (p1), il crawler visita la pagina. L'heap deve rimpiazzare p1 con una pagina proveniente dallo stesso host (p2), e per fare ciò assegna come time-stamp a p2 un tempo pari a t(p1) + delta. Questo è applicabile nel caso p2 sia presente. Se per quell'host la queue è vuota, allora andiamo a prendere una pagina tra le front queue (stando attenti che non sia una pagina il cui host ha già una queue assegnata!).
+
+
+## Check for page duplicate
+- URL match
+- Duplicate document match
+- Near-duplicate document match
+
+### URL match  
+Un possibile approccio è quello di usare un hash-table per memorizzare gli URLs. La memoria necessaria è tuttavia eccessiva, ed anche il tempo di accesso è infattibile. Questo approccio è stato usato da Altavista ma solo finchè il numero di pagine lo ha consentito. 
+
+### Bloom filter
+
+Bloom filter usa:
+- array binario (size m) inizializzato con soli 0
+- k funzioni hash che, data un URL, ritorna un intero compreso tra 0 e m-1
+
+Per controllare se un URL *u* è già stato visitato:
+- si computano le k funzioni di hash con input *u*
+- si controlla i valori nel vettore binario in corrispondenza degli indici i1, i2, ..., ik restituiti dall'hashing: se TUTTE le posizioni hanno valore 1, allora l'URL è già stato visitato.
+  - Nel caso non tutti i bit siano 1, visitiamo la pagina e poniamo 1 nel vettore binario in corrispondenza degli indici i1, i2, ..., ik.
+
+Questo approccio introduce possibili errori (falsi positivi):
+- la possibilità che un bit sia 0 dopo l'inserimento di tutti gli URL effettivamente visitati  
+`p = (1 - 1/m)^(kn) =  e^(-kn/m)` dove `n = numero URL`
+- la possibilità di avere un falso positivo è quindi: `(1 - p)^k` la probabilità di avere un 1 per ognuna delle funzioni di hashing piuttosto che 0.
+- Come minimizzare l'errore:
+  - il numero ideale di funzioni si ha da `k = (m/n)*ln(2)`, sostituendo si ottiene  circa `p = 0.62^(m/n)`. Questo vuol dire che aumentando il rapporto tra *m* ed *n* l'errore diminuisce.  
+  Con un rapporto di 10 (che corrsiponde ad usare 10 bit per URL, o un BF di n*10 bits) si ottiene 0.0084 (0.84% di probabilità) che risulta essere un valore accettabile.
+- Attraverso il bloom filter c'è un risparmio considerevole di memoria: con l'hashing memorizzare la stringa di un URL richiede in media 8 * 1000 bit, mentre con il bloom filter è possibile memorizzare anche solo 10 bit per URL.
+- Quante funzioni di hash sono necessarie? poichè `ln(2)` è trascurabile, scegliendo `m = 10n` k diventa circa 10.
 
 # TODO <!-- omit in toc -->
 
-## Crwaler
+/////////////
 
-scc strongly connected components: 
-due elementi a,b, si dicono ssc se a è collegato ad a e b è collegato ad a. Gli elementi di questo gruppo appartengono tutti allo stesso gruppo  
-
-SSC centrale: agglomerato 
-
-IN: contiene ssc, ma alcuni rami portano al SSC centrale senza poter tornare indietro
-
-OUT: una volta entarto in un ssc in out, non puoi uscirne
-
-tubes: collegano in e out ma skippano il core centrale
+check if page is a new one:
+- url match
+- duplicate document (are the 2 pages exacly equals?)
+- near duplicate document: (are 2 page almost equals?)
 
 
+Bloom filter (correct way):
+  - Binary array (size m) B
+  - We use k hash fucntion that return position of B
+  - To check if an url is already present, we compute k hash function, get the positions, and check if the bits are 1.
+  - THIS METHOD CAN GIVE YOU FALSE POSITIVE, BECAUSE ONE POSITION ISN'T EXCLUSIVE OF ONLY ONE URL.  
+  - Probability of a false positive (hash is perfectly random): 
+    - after insertion, the probability that a bit is 0 is: e^(-kn/m) = p		n = number of keys
+    - false positive: (1 - p)^k the probability taht there 1 for every hash funct (when it shoud be 0). 
+      - minimize error: k = (m/n) ln 2    ->    0.62^(m/n)
+      - for each keys i'm allocating m/n bits (with 10 bits i'm good) and that is better then using 8*1000 bits
+    - So how many function did i need? if i take m = 10*n, i need around 10 function
 
-Da dove far partire il crwaler (i crawler usano i link per passare da una pagina all'altra)
 
-Si fa partire i crwaler da IN (in modo da non ignorare nulla) e dal core, perchè contiene informazioni importanti
-
-
-crawler usa tipo snapshot: fa il crowling, salva ciò che trova (snapshot), il crowling continua e aggiorna le modifiche, quando ha finito aggiorna un nuovo snaphot. (semplificato) 
+///////////////////
