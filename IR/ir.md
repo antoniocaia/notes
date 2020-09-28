@@ -17,6 +17,11 @@
 	- [Check for page duplicate](#check-for-page-duplicate)
 		- [URL match](#url-match)
 		- [Bloom filter](#bloom-filter)
+- [Lezione 4](#lezione-4)
+	- [Spectral Bloom Filter](#spectral-bloom-filter)
+		- [Errore in SBF](#errore-in-sbf)
+	- [Parallel Crawlers and how to avoid duplication](#parallel-crawlers-and-how-to-avoid-duplication)
+	- [Static assignment](#static-assignment)
 
 ## Info
 Paolo Ferragina 
@@ -265,27 +270,91 @@ Questo approccio introduce possibili errori (falsi positivi):
 - Attraverso il bloom filter c'è un risparmio considerevole di memoria: con l'hashing memorizzare la stringa di un URL richiede in media 8 * 1000 bit, mentre con il bloom filter è possibile memorizzare anche solo 10 bit per URL.
 - Quante funzioni di hash sono necessarie? poichè `ln(2)` è trascurabile, scegliendo `m = 10n` k diventa circa 10.
 
+# Lezione 4
+
+## Spectral Bloom Filter
+
+Evoluzione del tradizionale Bloom Filter:
+- miglior performance a scapito di un uso di memoria leggermente maggiore
+- inserimento e eliminazione possibili
+- utile per alcuni tipi di query (db, iceberg query) on uso esclusivo per search engine!
+
+SBF utilizza:
+- f(x): funzione che calcola la frequenza di x in un dato set S
+- vettore (C) di dimensione m contenente le frequenze mappate dalle funzioni di hash
+- h1...hk(x): k funzioni di hash
+
+Come nel BF, le posizioni in C non sono univoche e possono presentarsi collisioni.
+
+Procedimento:
+- f(x) viene valutata, restituento una quantità q
+- vengono calcolate le k funzioni h, ottenendo gli indici i1...ik
+- I valori in i1...ik vengono incrementati di q.
+
+Per l'**inserimento**, basta valutare le funzioni h(x) e incrementare di uno i contatori corrispondenti.  
+Per la **rimozione**, come per l'inserimento ma decrementando.  
+Per la **ricerca**, prendo il valore minore tra quelli puntati dalle funzioni di hash.
+
+### Errore in SBF 
+``` 
+Sia mx il più piccolo valore ottenuto tramita la ricerca di x.
+Allora mx >= fx (dove mx > fx implica una collisione). 
+Segue che fx != mx con probabilità  e = (1 - p)^k 
+Identico all'errore del classico BF
+```
+
+Problemi implementazione SBF:  
+Tenere basso l'errore per inserimento ed eliminazione.  
+Utilizzo di un SBF secondario, più piccolo in dimensioni (SBF2).  
+// TODO NON SONO SICURO DI COME SI ACCEDA IN SBF2
+
+L'algoritmo prevede due possibili strade quando effettuo la ricerca:  
+- Se è presente un *recurring minimum* mx (il valore minimo appare più volte agli indici di hash, aka "dovrei avere almeno due posizioni non alterate") allora ritorno   mx.
+- Se non ho RM allora esiste il richio che tutti i valori siano stati alterati (almeno k-1 lo sono) e che lo sia anche il minimo.
+  - Per questo caso viene introdotta una seconda SBF (SBF2), ma molto più piccola.
+  - Quando non ho un RM, cerco in SBF2:
+    - Se mx2 in SBF2 > 0 allora ritorno mx2
+    - Se mx2 in SBF2 = 0, allora ritorno il minimo mx in SBF
+
+Per l'inserimento:
+- vado a incrementare tutte i contatori di x in SBF
+  - se in SBF1 non ho RM allora vado ad aggiornare anche SBF2
+    - Incremento tutti i contatori se diversi da 0
+    - altrimenti le inizializzo con il valore minimo presente in SBF
+
+Per l'eliminazione è come l'inserimento, solo che decremento.
+
+we use a heap to keep the top querys
+
+
+## Parallel Crawlers and how to avoid duplication
+
+Un problema nel far lavorare contemporaneamente più crawler è che esiste la possibilità che la stessa pagina venga visitata più volte e duplicata.
+
+Soluzioni:  
+- Dynamic assignment: controllo centrale che assigna ai singoli crawlers gli URL da visitare. Necessaria comuninicazione tra crawlers e controllo si crea collo di bottiglia.
+- Static assignment: web diviso staticamente, una parte per crawler. La divisione deve essere scalabile e bilanciata. Se un crawler "muore", una intera parte di web rimane scoperta. E' possibile bilanciare/riallocare gli URL nel caso di rimozione/aggiunta di crawler, ma è complesso.
+
+
+## Static assignment
+
+- Basato su URL/host: ad ogni crawler si assegna un dominipo. Problemi: carico non bilanciato, modificare la distribuzione è complicato.
+- HASH:
+  - Assegnare ad ogni crawler un indice {0 ... d}. 
+  - Definire una funzione di hash per URL con codominio {0 ... d}
+    - la funzione assegna ad ogni URL un unico crawler: ogni crawler computa tutti gli URL, ma visita solo quelli la cui funzine di hash corrisponde al proprio indice.
+
+
+**Consistent hashing**: 
+- mapping dei crawler and url con la stessa funzione di hash.
+  - crawler ids (cid): c1, c10, c16
+  - URL ids (uid): u2, u14, u16, 19  
+- un url viene assegnato al primo crwaler il cui cid > uid
+- facile inserimetno nuovo crawler (guardo il crawler con l'indice "successivo" e ricomputo i suoi URL), e facile eliminazione (ricomputo gli URL del crawler rimosso)
+
+crawler open source (download):
+- NUTCH 
+- SCRAPY
+
+
 # TODO <!-- omit in toc -->
-
-/////////////
-
-check if page is a new one:
-- url match
-- duplicate document (are the 2 pages exacly equals?)
-- near duplicate document: (are 2 page almost equals?)
-
-
-Bloom filter (correct way):
-  - Binary array (size m) B
-  - We use k hash fucntion that return position of B
-  - To check if an url is already present, we compute k hash function, get the positions, and check if the bits are 1.
-  - THIS METHOD CAN GIVE YOU FALSE POSITIVE, BECAUSE ONE POSITION ISN'T EXCLUSIVE OF ONLY ONE URL.  
-  - Probability of a false positive (hash is perfectly random): 
-    - after insertion, the probability that a bit is 0 is: e^(-kn/m) = p		n = number of keys
-    - false positive: (1 - p)^k the probability taht there 1 for every hash funct (when it shoud be 0). 
-      - minimize error: k = (m/n) ln 2    ->    0.62^(m/n)
-      - for each keys i'm allocating m/n bits (with 10 bits i'm good) and that is better then using 8*1000 bits
-    - So how many function did i need? if i take m = 10*n, i need around 10 function
-
-
-///////////////////

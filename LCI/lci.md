@@ -11,8 +11,11 @@
 - [Lezione 3 (cont)](#lezione-3-cont)
 	- [Pumping Lemma](#pumping-lemma)
 	- [Linguagggi Context Free](#linguagggi-context-free)
-- [Lezione 3](#lezione-3)
+- [Lezione 4](#lezione-4)
 	- [Analisi lessicalse](#analisi-lessicalse)
+- [Lezione 5](#lezione-5)
+	- [Tecniche di parsing](#tecniche-di-parsing)
+	- [Top-down parser LL(1)](#top-down-parser-ll1)
 
 
 
@@ -181,7 +184,7 @@ Il pumping lemma definisce una condizione di esistenza, trovando quindi un solo 
 - pumping lemma per CF
 - proprietà
 
-# Lezione 3
+# Lezione 4
 
 A noi interessano solo grammatiche regolari e grammatiche context free, le altre sono troppo complesse (e quindi costose).
 
@@ -231,3 +234,44 @@ Ciò che cambia è la "tabella delle transizioni".
 In ogni caso devono tutti e tre gli approcci scorrere carattere per carattere, riconoscere una parola (nel caso lo stato non abbia archi e sia finale) oppure effettuare il roll back nel caso di bisogno.
 
 Scanner "tokenizza" il source code abbinando ad ogni parola un ruolo, il parser costruisce l'albero di derivazione.
+
+# Lezione 5
+
+## Tecniche di parsing
+
+Parser usa linguaggi CF. Tuttavia non è possibile descrivere tutte le regole di un linguaggio di progragrammazione con un CF, specialmente per quanto riguarda espressioni vincolate ad altre espressioni:  
+`foo = fucn(17)` potrebbe risultare corretta sintatticamente (variabile, assegnazione, funzione, parentesi, parametro, parentesi), ma come possiamo essere sicuri che `foo` sia effettivamente una variabile?  
+Sono necessarie operazioni addizionali.
+
+Ricevuta un istruzioni in input, il parse rgenera una derivazione nel tentativo di matchare l'input.  
+
+Due tipi di derivazioni:
+- sinistra ("sostituisco/derivo" il termine non finale più a sinistra)
+- destra
+
+**Problema**: derivazioni sx e dx di una stessa espressione possono dare alberi di parsing diversi, dando un ordine di priorità diverso alle istruzioni.  
+**Soluzione**: pr rimuovere l'ambiguità, si affina la grammatica dando un grado di priorità alle struzioni.
+
+**Problema**: è possibile ottenere derivazioni sx diverse che portano allo stesso risultato, e ciò crea problemi al parser che vorrebbe essere il più "deterministico" possibile.  
+Una grammatica ambigua può portare problemi (es:  *if* exp *then* stm [*else* stm])
+
+
+## Top-down parser LL(1)
+
+- Partenza dalla radice
+- Backtrack per correggere scelte errate
+
+Top-down parsing algorithm:
+Construct the root node of the parse tree.  
+Repeat until lower fringe of the parse tree matches the input string.  
+1. At a node labeled A, select a production with A on its lhs and, for each symbol on its rhs, construct the appropriate child.
+2. When a terminal symbol is added to the border and it doesn’t match the border, backtrack.
+3. Find the next node to be expanded. 
+
+**Problema**: essendo l'algoritmo automatico, potrebbero presentirsi loop.  
+Se viene usata derivazione sinistra (dx), NON può esserci ricorsione sinistra (dx). 
+**Soluzione**: usare algoritmo per l'eliminazione diretta e indiretta della ricorsione.
+
+Per il problema legato al backtracking, è possibile unsare una sorta di look-ahead per avere una sorta di contesto, ed evitare di imboccare strade errate. Maggiore è il numero K di caratteri che si scansionano, maggiore sarà la precisione, minore sarà l'efficienza. L'approccio migliore si ha con k = 1 da cui l'algoritmo LL(1)
+
+
