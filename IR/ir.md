@@ -346,7 +346,7 @@ Soluzioni:
 
 
 **Consistent hashing**: 
-- mapping dei crawler and url con la stessa funzione di hash.
+- mapping dei crawler and url con la stessa funzione di hash. (Una buona funzione è `h(x) = a*x mod p` dove a casuale e p primo e p > max{I, S})
   - crawler ids (cid): c1, c10, c16
   - URL ids (uid): u2, u14, u16, 19  
 - un url viene assegnato al primo crwaler il cui cid > uid

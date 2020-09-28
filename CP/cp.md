@@ -6,7 +6,7 @@
 
 ## Bubble sort
 
-- Sempre quadratico (O(N^2)), senza distinzione tra caso peggiore e caso migliore.
+- Sempre quadratico (O(N^2)), senza distinzione tra caso peggiore, caso medio e caso migliore.
 - Unica utilità nel caso in cui l'unica operazione concessa sia l'invesione di due elementi consecutivi
 
 
@@ -14,6 +14,26 @@
 
 - Usato per array corti
 - Usato ibridamente 
+- Caso peggiore O(N^2)
+
+## Merge sort
+
+- O(N log(N)) confronti. Non si può ottenere meno di O(N log(N)) con algoritmi basati sui confronti (comparison model) e senza aggiungere restrizioni particolari. 
+- O(N) spazio (no inplace)
+- Esistono versioni teoriche con O(N sqr(log(N)))
+
+## Quick sort
+- O(N^2) caso peggiore, scegliendo pivot vicino agli estremi del vettore
+  - Scegliendo il pivot casualmente si ha una probabilità 1 - 1/N di avere un costo medio di O(N log(N))
+  
+### Quick select
+
+Trovare il k-th elemento più piccolo.  
+// TODO incollare algoritmo
+
+## Counting sort
+
+## Radix sort
 
 
 # Algoritmi di ricerca
