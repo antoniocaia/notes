@@ -16,6 +16,10 @@
 - [Lezione 5](#lezione-5)
 	- [Tecniche di parsing](#tecniche-di-parsing)
 	- [Top-down parser LL(1)](#top-down-parser-ll1)
+- [Lezione 6](#lezione-6)
+	- [LL Parsing](#ll-parsing)
+	- [Recursive descending parser](#recursive-descending-parser)
+		- [What if a grammar is not LL1? can i trasform it?](#what-if-a-grammar-is-not-ll1-can-i-trasform-it)
 
 
 
@@ -274,4 +278,68 @@ Se viene usata derivazione sinistra (dx), NON può esserci ricorsione sinistra (
 
 Per il problema legato al backtracking, è possibile unsare una sorta di look-ahead per avere una sorta di contesto, ed evitare di imboccare strade errate. Maggiore è il numero K di caratteri che si scansionano, maggiore sarà la precisione, minore sarà l'efficienza. L'approccio migliore si ha con k = 1 da cui l'algoritmo LL(1)
 
+
+# Lezione 6
+
+## LL Parsing  
+
+Quando scelgo una derivazione voglio avere informazioni necessarie per poter fare la scelta giusta. Se ho A -> a | b , voglio sapere quale delle due scelete è quella giusta in modo da non dover fare backtracking.  
+
+**first(A -> a)**: insieme di simboli, x appartiene a first(A->a) (dove a è un simbolo non terminale) se x è il primo carattere generato da a.
+
+Una proprietà necessaria affinche si abbia una grammatica LL(1) è che per ogni derivazione, se A -> a e A -> b allora necessariamente:  
+first(A->a) intersecato first(A->b) = vuoto.  
+
+Caso speciale: epsilon-produzioni.  
+È necessario definire prima di tutto la funzione follow.  
+**follow(A)**: l'insieme di simboli terminali che seguono la derivazione A.
+
+**first+(A->a)**:
+- first(A->a) U follow(A) se a first(A->a) appartiene epsilon
+- solo first(A->a) altrimenti
+
+**Recursive descent parser**
+
+Predictive parser.  
+"Scorro" la derivazione, senza far nulla finchè non ho un errore o arrivo alla fine. A quel punto "risalgo" e inizio a ritornre true (o false in caso di errrore) e a costruire la sequenza partendo dal fondo.
+
+**Trasformare una grammatica in LL(1)**
+NON è sempre possibile, in alcuni casi si.
+
+ES:  
+`A -> xy` e `A -> xz` si ha first+(A->xy) intersecato first+(A->xz) != vuoto  
+La grammatica non è LL(1), ma per portarla si può estrarre la parte comune:  
+`A -> xA'`  
+`A' -> y`  
+`A' -> z`
+
+**Costruire parser per LL(1)**
+
+Input: LL(1) grammar, first() set and follow() set.
+
+
+///////
+LL -> (L)eft to rigth, (L)eftmost derivation
+
+LL(1) property:
+- date due possibili regole A -> a and B -> b, allora volgiamo che first(a) != first(b) perchè vogliamo scegliere in maniera univoca quale strada prendere, e se hanno cartteri diversi non posso sbagliare
+
+Problema epsilon production: se abbiamo epsilon come first di a, devo vedere cosa viene dopo di epsilon in a. Follow(A) insieme di simboli che vengono dopo A in sentential form (no epsilon)
+
+firts+(a) = firts(a) + follow(A)
+
+
+// lhs = non terminal simbol
+
+
+## Recursive descending parser
+
+Scorro la derivazione, senza far nulla finchè non ho un errore o arrivo alla fine, a quel punto "risalgo" e inizio a ritornre true e  costruire a partire dal fondo
+
+
+
+### What if a grammar is not LL1? can i trasform it?
+
+nope, not always.
+But, what if... ? jk, unless?
 

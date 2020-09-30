@@ -22,6 +22,9 @@
 		- [Errore in SBF](#errore-in-sbf)
 	- [Parallel Crawlers and how to avoid duplication](#parallel-crawlers-and-how-to-avoid-duplication)
 	- [Static assignment](#static-assignment)
+- [Lezione 5](#lezione-5)
+	- [Compressed storage of WG](#compressed-storage-of-wg)
+	- [Locality-sensitive hashing](#locality-sensitive-hashing)
 
 ## Info
 Paolo Ferragina 
@@ -305,8 +308,7 @@ Identico all'errore del classico BF
 
 Problemi implementazione SBF:  
 Tenere basso l'errore per inserimento ed eliminazione.  
-Utilizzo di un SBF secondario, più piccolo in dimensioni (SBF2).  
-// TODO NON SONO SICURO DI COME SI ACCEDA IN SBF2
+Utilizzo di un SBF secondario, più piccolo in dimensioni (SBF2) perchè conterrà solo gli elementi senza RM.  
 
 L'algoritmo prevede due possibili strade quando effettuo la ricerca:  
 - Se è presente un *recurring minimum* mx (il valore minimo appare più volte agli indici di hash, aka "dovrei avere almeno due posizioni non alterate") allora ritorno   mx.
@@ -358,3 +360,101 @@ crawler open source (download):
 
 
 # TODO <!-- omit in toc -->
+
+# Lezione 5
+
+Il Web Graph può essere visto come una coppia di insiemi V e E, dove V sono i vertici (pagine) ed E i rami (link).
+
+Il WG gode di tre importanti proprietà:
+- Skewed distribuition:
+  La probabilità che un nodo abbia X collegamenti è `1/(k^a)` con `a = 2.1`.  
+  È stato osservato che il numero di link in entrata (così come quelli in uscita, e altre proprietà) rispecchiano una power low distribuition.
+	<!--
+	```
+	y = 1/x^a
+	log2(y) = log2(1/x^a) = -log2(x^a) = -a*log2(x)
+	y' = -a*x'
+	```
+	-->
+
+- Locality:  
+  sia H l'host di U, allora l'80% dei link di U andrà verso URLs presenti sempre in H
+- Similarity:  
+  siano U e V URLs nel solito host, allora molti dei link presenti in uno saranno presenti anche nell'altro.
+  
+
+URL sorting:
+usiamo la forma invertita degli url per memorizzarli, in modo che domini uguali o simili siano contigui quando memorizzati.   
+`www.di.unipi.it/inf/...`  diventa `it.unipi.di.www/inf/...`
+
+
+## Compressed storage of WG
+
+Per memorizzare il WG è necessario ridurre il più possibile lo spazio utilizzato.  
+Sfruttando le proprietà di locality e similarity è possibile effettuare varie ottimizzazioni. 
+
+Due URL nello stesso host sono lessicalmente vicini e quindi vicini nella tabella, inoltre hanno in comune l'80% dei link. Ciò permette di evitare di memorizzare più volte gli stessi link: ogni URL controlla le liste di link degli URLs precedenti interni a una window definita e sceglie quella con più elementi in comune. Attraverso un riferimento (mioId - refId) e una lista binaria indica i link in comune.  
+
+Per migliorare ulteriormente la compressione è possibile cambiare il tipo di memorizzazione dei riferimenti, da cui si ottiene la struttura finale:
+- id nodo (url)
+- \# link in uscita
+- riferiemnto per l'URL di cui vogliamo la lista di link
+- \# di blocchi nella "lista binaria" per la lettura della lista di riferiemnto
+- valore del primo blocco e dimensione dei blocchi (-1)
+  - Il numero di blocchi effettivamente presenti è sempre inferiore di uno rispetto a quello dichiarato: per ottenere questo ultimo blocco basta vedere quanto è lunga la lista dell'url di riferimento e sottrarre la dimensione dei vari blocchi
+- link extra 
+
+
+| Node | Outd  | Ref | # blocks| copy blocks | extra nodes |
+| :--: | :--: | :--: | :--: | :--: | :--: |
+| 15 | 3 | 0 |   |       | 10, 11, 12 |
+| 16 | 4 | 1 | 3 | 1,1,0 | 13, 14     |
+
+
+## Locality-sensitive hashing
+
+Contesto vasto.   
+Dati:
+- *U* users
+- set od *d* features
+Trovare il più grande gruppo di utenti simili.
+
+Possibili soluzioni:
+- brute force, provare le possibili combinazioni:
+  - costo: `2^U * U^2`  
+  - parallel comp o cpu migliori non comportano miglioramenti  
+  - anche limitando la dimensione dei gruppi ad un massimo L, sia ha comunque un   costo di `U^L * L^2` 
+- algoritmi di clustering (K-means)
+  - K è il numero di gruppi 
+  - Ogni iterazione dell'algoritmo costa: K * U
+  - confrontare gli attribuiti dei vari punti ha costo O(d)
+  - provare i vari K (senza saperlo a priori) ha costo `U^3`
+    - vista la relazione `U = tempo^(1/3)`, incrementare la potenza computazionale di un fattore `s` di fatto migliora i tempi di solo `s^(1/3)`
+- Introdurre fingerprint per far si che elemnti di U simili diventino uguali: facili da confrontare, costo ridotto
+
+Locality-sensitive hashing appartiene a quest'ultima categoria.  
+Appunti prof: https://www.dropbox.com/s/ovavpl1s0yu71fo/Archivio29.09.2020.zip?dl=0
+
+**HOW THIS WORKS:**
+
+- Siano *p* e *q* due vettori binari e *d* la dimensione dei due vettori.  
+- `D(p,q)` è la funzione di similirità e restituisce il numero di bit differenti in p e q (hamming distance).   
+- Similirità `S = (d - D(p,q)) / d` con `0 <= S <= 1`  
+  - Probabilità che presa una posizione x casuale in p e q i bit siano uguali: `P(x) = S`
+
+Inoltre:
+
+- sia *hI(p)* la funzione di hash di restrizione su I.
+  - hI si basa su un set I = { i1, i2, ... ik} con K = |I| contenente le posizioni su cui effettuare le restrizioni, aka quali bit prendere mentre il resto viene escluso.
+  - I è determinato casualmente!
+- Invece di valutare D su p e q, valuto `D(hI(p), hI(q))`
+  - Probabilità che presa una posizione x casuale in p e q i bit siano uguali: `P(x) = S^K`
+
+*Aumentando K riduciamo i falsi positivi (K = d comporta nessun falso positivo), ma aumentiamo i falsi negativi.*
+
+Soluzione: Definite L set I (e rispettive funzioni di hash) con K costante.  
+Iterare quindi tutte le L funzioni, e se anche una sola restituisce un match tra hIi(p) = hIi(q) allora definiamo p e q "uguali"  
+
+*Aumentando L riduciamo i falsi negativi ma aumentiamo i falsi positivi.*
+
+Necessario trovare un bilanciamento tra L e K e per avere un compromesso tra prestazioni, falsi positivi e falsi negativi.
