@@ -18,8 +18,7 @@
 	- [Top-down parser LL(1)](#top-down-parser-ll1)
 - [Lezione 6](#lezione-6)
 	- [LL Parsing](#ll-parsing)
-	- [Recursive descending parser](#recursive-descending-parser)
-		- [What if a grammar is not LL1? can i trasform it?](#what-if-a-grammar-is-not-ll1-can-i-trasform-it)
+- [Lezione 7](#lezione-7)
 
 
 
@@ -314,32 +313,12 @@ La grammatica non è LL(1), ma per portarla si può estrarre la parte comune:
 `A' -> z`
 
 **Costruire parser per LL(1)**
+Input: LL(1) grammar, first() set and follow() set.  
 
-Input: LL(1) grammar, first() set and follow() set.
+Due opzioni: 
+- una funzione per ciascun non terminale (cascata di if else...) con return true-false
+- tabella TopDown (row per simboli non terminali, column per simboli terminali) + [algo (slide 71)](http://pages.di.unipi.it/gori/Linguaggi-Compilatori2020/ParsingI-II.pdf)
 
+# Lezione 7
 
-///////
-LL -> (L)eft to rigth, (L)eftmost derivation
-
-LL(1) property:
-- date due possibili regole A -> a and B -> b, allora volgiamo che first(a) != first(b) perchè vogliamo scegliere in maniera univoca quale strada prendere, e se hanno cartteri diversi non posso sbagliare
-
-Problema epsilon production: se abbiamo epsilon come first di a, devo vedere cosa viene dopo di epsilon in a. Follow(A) insieme di simboli che vengono dopo A in sentential form (no epsilon)
-
-firts+(a) = firts(a) + follow(A)
-
-
-// lhs = non terminal simbol
-
-
-## Recursive descending parser
-
-Scorro la derivazione, senza far nulla finchè non ho un errore o arrivo alla fine, a quel punto "risalgo" e inizio a ritornre true e  costruire a partire dal fondo
-
-
-
-### What if a grammar is not LL1? can i trasform it?
-
-nope, not always.
-But, what if... ? jk, unless?
-
+Tutte le [slide](http://pages.di.unipi.it/gori/Linguaggi-Compilatori2020/Bottomup.pdf).
