@@ -24,7 +24,15 @@
 	- [Static assignment](#static-assignment)
 - [Lezione 5](#lezione-5)
 	- [Compressed storage of WG](#compressed-storage-of-wg)
-	- [Locality-sensitive hashing](#locality-sensitive-hashing)
+	- [Locality-sensitive hashing (LSH)](#locality-sensitive-hashing-lsh)
+- [Lezione 6](#lezione-6)
+	- [(cont)](#cont)
+	- [LSH vs K-m](#lsh-vs-k-m)
+	- [Duplication](#duplication)
+		- [Shingling](#shingling)
+- [Lezione 8](#lezione-8)
+	- [cosine distance / smilarity](#cosine-distance--smilarity)
+- [TODO](#todo)
 
 ## Info
 Paolo Ferragina 
@@ -411,7 +419,7 @@ Per migliorare ulteriormente la compressione è possibile cambiare il tipo di me
 | 16 | 4 | 1 | 3 | 1,1,0 | 13, 14     |
 
 
-## Locality-sensitive hashing
+## Locality-sensitive hashing (LSH)
 
 Contesto vasto.   
 Dati:
@@ -458,3 +466,129 @@ Iterare quindi tutte le L funzioni, e se anche una sola restituisce un match tra
 *Aumentando L riduciamo i falsi negativi ma aumentiamo i falsi positivi.*
 
 Necessario trovare un bilanciamento tra L e K e per avere un compromesso tra prestazioni, falsi positivi e falsi negativi.
+
+```
+Definiamo g come la funzione di "concatenzione" delle funzioni di hash:  
+g(p) = < hI1(p), hI2(p), ..., hIl(p) >   
+Allora p è simile a q sse esiste un j tc hIj(p) = hIj(q)
+```
+Sappiamo che la probabilità che due fingerprint siano uguali è `S^K`.  
+Quindi la probabilità che `g(p) = g(q)` è `P(g(p) = g(q)) = 1 - P(tutte hIj per p e q siano diverse)` da cui:  
+```
+P(g(p) = g(q)) = 1 - [1 - S^K]
+```
+
+Come varia la probabilità al variare di S?  
+Banalmente, al ridursi della similirità, diminuisce la probabilità.  
+La funzione tuttavia non raggiunge mai lo zero e neanche l'uno.
+
+# Lezione 6
+
+[Parte 1](https://web.microsoftstream.com/video/f93bddf6-7e68-4167-88f2-1f7a2befc018)  
+[Parte 2](https://web.microsoftstream.com/video/b05f1333-28bb-4512-91dd-ae5d34c8468d)  
+
+## (cont)
+
+Come utilizzare tutto ciò, aka come capire quali sono le pagine simili?  
+
+**Approccio offline: (browsers)**  
+- calcolare g(pi) per ogni i
+- ordinare  g() per hI1() (aka raggruppare basendoci sul primo fingerprint).
+- ordinare  g() per hI12()
+- ...
+- ordinare  g() per hIl()
+
+p | gI1 | gI2
+:-: | :-: | :-:
+p1  | 0   | 3
+p2  | 1   | 0
+p3  | 1   | 2
+p4  | 3   | 0
+p5  | 3   | 1
+
+Costruisco trasitivamente le similità tra le varie pagine:  
+p2 e p3 sono simili attraverso gI1; p2 e p4 sono simili per gI2; p3 e p4 sono simili.  
+(Possono esserci restrizioni maggiori irl)
+
+**Approccio online: (db)**  
+
+"Searching approximation"  
+
+Piuttosto che ordinare e raggruppare, creo L hash table, una per ogni funzione hIj, dove inserire i risultati.
+
+Ad un certo punto il db riceve una query q, che viene computata da tutte le funzioni di hash. In ogni tabella viene prelevato il contenuto dello slot puntato dalla rispettiva funzione (NB: se hI1 mi ritorna un slot contenete p3, hI2 potrebbe ritornare un slot vuoto o contenete p7, non necessariamente p3).  
+In sostanza, vado a prelevare e confrontare pagine che so essere rimili, e poi tramite opportune operazioni decido cosa ritornare.
+
+## LSH vs K-m
+
+Slide
+
+## Duplication
+
+I motori di ricerca evitano di indicizzare pagine il cui contenuto è identico/quasi identico.  
+
+**Duplicazione esatta:**  
+In base al contesto, è possibile adottare tecniche più lente (MD5, checksum) oppure tecniche più veloci (Karp-Rabin).  
+
+**K-B fingerprint:** 
+Usato per verificare se due "finestre" di bit sono uguali.   
+Sequenza a di m bit. Poichè vogliamo associare a tale sequenza una valore intero, aggiungiamo un bit aggiuntivo a sx della sequenza e lo poniamo a 1.  
+Si prende un valore primo p in U tc 2*p sia occupi pochi byte. (U) = 2^64).  
+La funzione di fingerprint è f(a) = a mod p.  
+
+### Shingling
+
+Separare documenti in q-grams (shingles), ovvero set di q termini contigui.  
+Due documenti sono simili se i rispettivi insiemi di shingles si intersecano suffcientemente.  
+
+Maggiore è q, maggiore sarà la somiglianza tra due documenti. Tuttavia, all'aumentare di q aumentiamo esponenzialmente l'impatto di ciascun termine sull'insime di shingles. Una parola cambiata può influire su un numbero altissimo di q-gram (4 < q < 8).  
+Come valutare l'intersezione tra due insiemi di shingles Sa Sb ? 
+- intersezione non è sufficiente, in quanto influenzata dalla lunghezza dei documenti.
+- JACCARDI similarity `(sim) = Sa inter Sb / Sa union Sb`
+
+**Come ottenere Jaccard-sim?**
+
+Set di shingles. Trasformiamo le stringhe in valori numerici, modulo 2^64.  
+Calcolare l'intersezione richiede iterazioni, ed è troppo costoso! SOluzione:  
+- permuto con funzione `p(x) = ax + b mod 2^64` con a e b co-primi
+- prendo i minimi di ciascun set
+- `P( min(p(Sa)) min(p(Sb)) )  =  jac-sim(Sa, Sb)  =  Sa inter Sb / Sa union Sb`  
+
+for the dummies:   
+- per ogni set di shingles Si valutano m funzioni di permutazione p (da cui otteniamo lo sketch di ciascun S)
+- in media, avrò che:  
+```
+# valori uguali tra gli sketch di A e B = # di funzioni di permutazione (m) * P( min(p(Sa)) min(p(Sb)) )
+
+Divido da entrambi i lati per m
+
+ottengo che :
+# valori uguali tra gli sketch di A e B / m = 
+P( min(p(Sa)) min(p(Sb)) ) = 
+Sa inter Sb / Sa union Sb
+
+Per cui ho una approssimazione di Jac-sim
+```
+
+# Lezione 8
+
+## cosine distance / smilarity
+
+- Prodotto scalare X: `sommatoria (pi * qi)` dove p e q sono due vettori
+- `cos(a) = p X q / norm2(p) * norm2(q)` dove `norm2(p) = ( sommatoria pi^2 )^1/2`
+  - cos(a) range tra -1 e 1
+  - Il vantaggio è che l'angolo è indipendente dalla lunghezza del vettore (aka la dimensione della pagina)
+
+<!--
+We run a sequence of random vector r1 ... rk  that we compute for p and q
+- sign(p X ri) = alfa -> { 1 se 0 < alfa < 90, 0 se 90 < alfa < 180}
+  - per p e q avremmo una sequenza lunga k di 0 e 1 
+- P(hr(p) = hr(1)) = 1 - a / PI
+- -->
+
+
+# TODO
+
+- K-B fingerprint
+- cosine distance / smilarity
+

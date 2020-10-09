@@ -19,6 +19,14 @@
 - [Lezione 6](#lezione-6)
 	- [LL Parsing](#ll-parsing)
 - [Lezione 7](#lezione-7)
+	- [Bottom up parser](#bottom-up-parser)
+- [Lezione 8](#lezione-8)
+	- [Costruzione tabelle ACTION e GOTO](#costruzione-tabelle-action-e-goto)
+		- [Computing Closures](#computing-closures)
+		- [Computing Gotos](#computing-gotos)
+		- [Filling Action and Goto tables](#filling-action-and-goto-tables)
+- [Lezione 9](#lezione-9)
+	- [Context-sensitive analysisi or semantic elaboration](#context-sensitive-analysisi-or-semantic-elaboration)
 
 
 
@@ -86,12 +94,12 @@ Su linguaggi si possono fare le seguenti operazioni: Unione Intersezione Differe
 
 **La stringa w appartiene a L?**
 
-| Grammatica |    Costo     |
-| :--------: | :----------: |
-|     3      |      P       |
-|     2      |      P       |
-|     1      | PSPACE (NP)  |
-|     0      | undecidable  |
+| Grammatica |    Costo    |
+| :--------: | :---------: |
+|     3      |      P      |
+|     2      |      P      |
+|     1      | PSPACE (NP) |
+|     0      | undecidable |
 
 
 
@@ -321,4 +329,104 @@ Due opzioni:
 
 # Lezione 7
 
-Tutte le [slide](http://pages.di.unipi.it/gori/Linguaggi-Compilatori2020/Bottomup.pdf).
+## Bottom up parser
+
+Tutte le [slide e (algo slide 28)](http://pages.di.unipi.it/gori/Linguaggi-Compilatori2020/Bottomup.pdf).
+
+Bottom up costruisce una derivazione "al contrario": invece di partire da lo stato iniziale e cercare di arrivare all'input scegliendo una derivazione piuttosto che un'altra, il bottom up parte dall'input e associa progressivamente la regola che ha condotto a quell'input.
+
+Bottom un costruisce una rightmost derivation (al contrario) e per fare ciò deve sostituire la sottostringa sinistra.  
+
+handle = < A -> B, k > dove k è simbolo più a sinistra della derivazione A -> B
+
+Ogni sottostringa a destra di un handler è composta da soli simboli terminali (perchè è una derivazione destra!)
+
+Se la grammatica non è ambigua, ogni iterazione ha un unico handle
+
+Problema handler: come si generano senza calcolare troppe derivazioni? Soluzione: lookahead
+
+
+# Lezione 8
+
+## Costruzione tabelle ACTION e GOTO
+
+Definire funzioni 
+- goto(stato s, simbolo non terminale o terminale X)
+- closure(stato s)
+
+item: coppia P e delta (d)
+- P è una produzione A -> B con un punto (°). Il punto indica il top dello stack!
+- delta è il lookahead di lunghezza al più 1
+
+Esempio:  
+```
+A -> beta  
+con beta = By e lookahead a  
+si hanno gli items:
+[A -> °By, a]
+[A -> B°y, a] B nel top dello stack!
+[A -> By°, a] By è stato processato e il lookahead a è stato trovato
+```
+
+Il lookahead viene usato solo quando ° è alla fine.
+
+High-level overview  
+- Build the canonical collection of sets of LR(1) Items 
+  - Start with an appropriate initial state, s0  
+    - [S’ →•S,EOF], along with any equivalent items  
+    - Derive equivalent items as closure( s0 )  
+  - Repeatedly compute, for each sk, and each symbol X, goto(sk,X)  
+    - If the set is not already in the collection, add it  
+    - Record all the transitions created by goto( )  
+	This eventually reaches a fixed point  
+- Fill in the table from the collection of sets of LR(1) item  
+
+
+### Computing Closures
+
+`closure(s)` aggiunge ad `s` gli items diretta conseguenza degli elementi già in s:  
+sia `[A→β•C δ,a]` un elemento di s, allora vengono aggiunti  
+- `[C →•τ,x]`, uno per ciascuna derivazione di C
+- ogni elemento `x ∈ FIRST(δa)`  
+
+```
+ Closure( s )
+	while ( s is still changing )
+		∀ items [A → β •C δ,a] ∈ s
+			∀ productions C → τ ∈ P
+			∀ x ∈ FIRST(δa) // δ might be ε
+				if [C → • τ,x] ∉ s
+				then s ← s ∪ { [C → • τ,x] }
+ ```
+
+ ### Computing Gotos
+
+ ```
+ Goto( s, X )
+ 	new ←Ø
+ 	∀ items [A→β•X δ,a] ∈ s
+ 		new ← new ∪ {[A→βX •δ,a]}
+ 	return closure(new)
+ ```
+
+ ### Filling Action and Goto tables
+
+ ```
+ ∀ set Sx ∈ S
+ 	∀ item i ∈ Sx
+ 		if i is [A→β • aδ,b] and goto(Sx,a) = Sk , a ∈ T
+ 			then ACTION[x,a] ← “shift k”
+ 		else if i is [S’→S •,EOF]
+			 then ACTION[x ,EOF] ← “accept”
+		else if i is [A→β •,a]
+ 			then ACTION[x,a] ← “reduce A→β”
+
+	∀ n ∈ NT
+ 		if goto(Sx ,n) = Sk
+ 			then GOTO[x,n] ← k
+ ```
+
+ # Lezione 9
+
+ ## Context-sensitive analysisi or semantic elaboration
+

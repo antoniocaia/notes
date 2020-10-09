@@ -1,8 +1,26 @@
+- [Note generali](#note-generali)
+- [Algoritmi di sorting](#algoritmi-di-sorting)
+	- [Bubble sort](#bubble-sort)
+	- [Insertion sort](#insertion-sort)
+	- [Merge sort](#merge-sort)
+	- [Quick sort](#quick-sort)
+		- [Quick select](#quick-select)
+	- [Counting sort](#counting-sort)
+	- [Radix sort](#radix-sort)
+- [Algoritmi di ricerca](#algoritmi-di-ricerca)
+	- [Binary search](#binary-search)
+	- [Exponential search](#exponential-search)
+- [(B) Binary Search Tree](#b-binary-search-tree)
+	- [Visit](#visit)
+- [Common problem](#common-problem)
+	- [Dicrionary problem](#dicrionary-problem)
+	- [Precedessor problem](#precedessor-problem)
+
 # Note generali
 
 - Per valutare l'efficienza di un algoritmo può convenire valutare il blocco di istruzioni piuttosto che il costo singolo. Questo perchè in alcuni casi (vedi sliding windows) il caso peggiore è ampiamente compensato dal resto dei casi.
 
-# Algoritmi di sortting
+# Algoritmi di sorting
 
 ## Bubble sort
 
@@ -28,13 +46,15 @@
   
 ### Quick select
 
-Trovare il k-th elemento più piccolo.  
-// TODO incollare algoritmo
+// TODO
 
 ## Counting sort
 
+// TODO
+
 ## Radix sort
 
+// TODO
 
 # Algoritmi di ricerca
 
@@ -56,3 +76,28 @@ Trovare il k-th elemento più piccolo.
 - Sia L la posizione dell'elemento cercato la ricerca exp ha un costo di:
   O(log(l)) + O(log(l)) = **O(log(l))**
 - Exponential search è buono in particolar modo per le sequenze unbound
+
+# (B) Binary Search Tree 
+
+## Visit
+- In-order:  
+  We visit the left sub tree, the node and then the right node
+- Pre-order:  
+  We visit the node and then the sub tree
+- Post-order:  
+  We visit the sub trees and then the node
+
+# Common problem
+
+## Dicrionary problem
+
+Support:
+- insert
+- delete
+- lookup
+
+## Precedessor problem
+Support:
+- min/max
+- predecessore
+- successor
