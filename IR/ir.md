@@ -4,7 +4,7 @@
 	- [Intro](#intro)
 	- [Boolean retrieval model](#boolean-retrieval-model)
 	- [Inverted index](#inverted-index)
-- [Lezione 2 (cont)](#lezione-2-cont)
+- [Lezione 2](#lezione-2)
 	- [Skips](#skips)
 	- [Recursive Merge](#recursive-merge)
 	- [Zones](#zones)
@@ -12,7 +12,7 @@
 		- [Spam](#spam)
 - [Lezione 3](#lezione-3)
 	- [Crawler](#crawler)
-	- [Life-cycle](#life-cycle)
+		- [Life-cycle Crawler](#life-cycle-crawler)
 	- [Marcator](#marcator)
 	- [Check for page duplicate](#check-for-page-duplicate)
 		- [URL match](#url-match)
@@ -32,17 +32,19 @@
 		- [Shingling](#shingling)
 - [Lezione 8](#lezione-8)
 	- [cosine distance / smilarity](#cosine-distance--smilarity)
+- [Lezione 9](#lezione-9)
+	- [SPIMI](#spimi)
+		- [Big data sorting](#big-data-sorting)
+	- [Distributed indexing](#distributed-indexing)
+- [Lezione 10](#lezione-10)
+	- [Dinamic Indexing](#dinamic-indexing)
+	- [Compression of documents](#compression-of-documents)
+		- [LZ 777](#lz-777)
+		- [Compression and networking](#compression-and-networking)
+- [Lezione 11](#lezione-11)
+- [Lezione 12](#lezione-12)
+- [Leione 13](#leione-13)
 - [TODO](#todo)
-
-## Info
-Paolo Ferragina 
-
-For meets with the teacher, connect to the Microsoft Team room, or write in the chat if the call isn't open.
-
-Exam: 
-- written pre-test and oral exam
-- No mid-term exam
-- You can use italian during exam
 
 # Lezione 1
 
@@ -80,8 +82,6 @@ ovvero la terza colonna, *Macbeth*.
 
 Una matrice di queste dimensioni non è utilizzabile quando si hanno milioni di documenti e di termini a causa dell'enorme memoria necessaria alla sua memorizzazione.
 
-
-`TODO rimpiazzare termini con dizionario`
 
 ## Inverted index
 Un altro approccio per processare query boolean è quello dell'inverted inex.  
@@ -124,7 +124,7 @@ E' possibile risparmiare memoria memorizzando:
 
 Nel caso vengano utilizzati più termini di ricerca, una possibile modifica è quella di effettuare i confronti sempre a coppie, partendo dalle due liste con un numero minore di elementi e utilizzando il risultato come lista temporanea. In questo modo infatti il risultato di ogni iterazione avrà come risultato una lista lunga al più quanto la più piccola delle due liste utilizzate.
 
-# Lezione 2 (cont)
+# Lezione 2
 
 ## Skips
 
@@ -224,20 +224,19 @@ Infine, quanto spesso fare crawling?
 - frequenza: ogni quanto visitare le pagine
 
 
-## Life-cycle
+### Life-cycle Crawler
 
+**Glossario:**  
+- Seed Page (*SP*): pagina contenente gli URLs utilizzabili da un crawler come punto di partenza.  
+- Priority Queue (*PQ*): URLs da valutare  
+- Assigned Repository (*AR*): sinonimo per Frontier  
+- Page Repository (PR): repository per le pagine una volta che sono state scaricate
 
-Seed Page (SP): pagina contenente gli URLs utilizzabili da un crawler come punto di partenza.
-Frontiers (F): lista di URLs che è necessario visitare.
-Priority Queue (PQ): URLs da valutare
-Assigned Repository (AR): Frontier
-Page Repository (PR):
+Un "crawler manager" preleva URL dalla *PQ*, se la pagina non è stata mai visitata o è stata modificata dall'ultima visita viene inserita in *AR*.  
+Ogni pagina ha un "downloader": preleva da *AR* l'URL e scarica e compressa la pagina per salvare il risultato in *PR*.  
+Il "link extractor" preleva una pagina da *PR* e cerca eventuali link, per inserirli in *PQ*.
 
-Un "crawler manager" preleva URL dalla PQ, se la pagina non è stata mai visitata o è stata modificata dall'ultima visita viene inserita in AR.  
-Ogni pagina ha un "downloader": preleva da AR l'URL e scarica e compressa la pagina per salvare il risultato in PR.  
-Il "link extractor" preleva da PR e cerca eventuali link, per inserirli in PQ.
-
-Con che criterio vengono scelte le pagine dall'AR? Dipende dalla policy scelta: BFS, DFS, Random, Popularity driven, Page Rank, topic driven, combined.  
+Con che criterio vengono scelte le pagine dall'*AR*? Dipende dalla policy scelta: BFS, DFS, Random, Popularity driven, Page Rank, topic driven, combined.  
 
 ## Marcator
 Marcator è un crawler che segue alcune semplici regole:
@@ -246,13 +245,18 @@ Marcator è un crawler che segue alcune semplici regole:
 - preferire pagine con un alta priorità per il crawling
 
 **Overview:**  
-Un modulo preleva gli URLs nella F per poi distribuirli in K queue, una per ciascun livello di priorità.  
-Un successivo modulo estrare dalle queue gli URLs preferendo quelli con priorità maggiore. Gli URLs sono distribuiti in B queue, dove ogni queue rappresenta un host, le pagine provenenti dallo stesso host vanno nella stessa queue. Ciò permette di regolare gli accessi agli host, evitanto multipli accessi contemporaneamente. Se una queue si "svuota", può essere riassegnata ad un nuovo host.  
-URL selector preleva un URL da ciascuna delle B queue (una pagian per host) e gli assegna ad un min-heap. Il min-Heap si basa su dei time-stamp. Questo time-stamp è calcolata sommando il tempo di esecuzione della pagina precedente (dello stesso host) + un tempo di attesa extra.  
-L'heap restituisce l'url con il tempo minore (p1), il crawler visita la pagina. L'heap deve rimpiazzare p1 con una pagina proveniente dallo stesso host (p2), e per fare ciò assegna come time-stamp a p2 un tempo pari a t(p1) + delta. Questo è applicabile nel caso p2 sia presente. Se per quell'host la queue è vuota, allora andiamo a prendere una pagina tra le front queue (stando attenti che non sia una pagina il cui host ha già una queue assegnata!).
+Un modulo preleva gli URLs dalla Frontier per poi distribuirli in *K* queue; ogni queue ha un diverso livello di priorità.  
+Un successivo modulo estrae dalle queue gli URLs preferendo quelli con priorità maggiore.  
+Gli URLs sono distribuiti in *B* queue (ogni queue rappresenta un host diverso); le pagine provenenti dallo stesso host vanno nella stessa queue. Ciò permette di regolare gli accessi agli host, evitanto multipli accessi contemporaneamente. Se una queue si "svuota", può essere riassegnata ad un nuovo host.  
+URL selector preleva un URL da ciascuna delle *B* queue (una pagian per host) e gli assegna ad un min-heap. Il min-Heap si basa su dei time-stamp.  
+Il time-stamp è calcolata sommando il tempo di esecuzione della pagina precedente (dello stesso host) + un tempo di attesa extra.  
+L'heap restituisce l'URL con il tempo minore (p1), il crawler visita la pagina. L'heap deve rimpiazzare p1 con una pagina proveniente dallo stesso host (p2), e per fare ciò assegna come time-stamp a p2 un tempo pari a t(p1) + delta. Questo è applicabile nel caso p2 sia presente. Se per quell'host la queue è vuota, allora andiamo a prendere una pagina tra le front queue (stando attenti che non sia una pagina il cui host ha già una queue assegnata).
 
 
 ## Check for page duplicate
+
+Come determinare se una pagina è già stata visitata? Devo tenere traccia degli URLs già visitati. 
+
 - URL match
 - Duplicate document match
 - Near-duplicate document match
@@ -263,18 +267,18 @@ Un possibile approccio è quello di usare un hash-table per memorizzare gli URLs
 ### Bloom filter
 
 Bloom filter usa:
-- array binario (size m) inizializzato con soli 0
-- k funzioni hash che, data un URL, ritorna un intero compreso tra 0 e m-1
+- array binario (size *m*) inizializzato con soli 0
+- *k* funzioni hash che, dato un URL, ritornano un intero compreso tra *0* e *m-1*
 
 Per controllare se un URL *u* è già stato visitato:
-- si computano le k funzioni di hash con input *u*
-- si controlla i valori nel vettore binario in corrispondenza degli indici i1, i2, ..., ik restituiti dall'hashing: se TUTTE le posizioni hanno valore 1, allora l'URL è già stato visitato.
-  - Nel caso non tutti i bit siano 1, visitiamo la pagina e poniamo 1 nel vettore binario in corrispondenza degli indici i1, i2, ..., ik.
+- si computano le *k* funzioni di hash con input *u*
+- si controlla i valori nel vettore binario in corrispondenza degli indici *i1, i2, ... , ik* restituiti dall'hashing: se TUTTE le posizioni hanno valore 1, allora l'URL è già stato visitato.
+  - Nel caso non tutti i bit siano 1, visitiamo la pagina e poniamo 1 nel vettore binario in corrispondenza degli indici *i1, i2, ... , ik*.
 
 Questo approccio introduce possibili errori (falsi positivi):
-- la possibilità che un bit sia 0 dopo l'inserimento di tutti gli URL effettivamente visitati  
+- la probabilità che un bit sia 0 dopo l'inserimento di tutti gli URL effettivamente visitati  
 `p = (1 - 1/m)^(kn) =  e^(-kn/m)` dove `n = numero URL`
-- la possibilità di avere un falso positivo è quindi: `(1 - p)^k` la probabilità di avere un 1 per ognuna delle funzioni di hashing piuttosto che 0.
+- la possibilità di avere un falso positivo è quindi: `(1 - p)^k`, ovvero la probabilità di avere un 1 per ognuna delle funzioni di hashing piuttosto che 0.
 - Come minimizzare l'errore:
   - il numero ideale di funzioni si ha da `k = (m/n)*ln(2)`, sostituendo si ottiene  circa `p = 0.62^(m/n)`. Questo vuol dire che aumentando il rapporto tra *m* ed *n* l'errore diminuisce.  
   Con un rapporto di 10 (che corrsiponde ad usare 10 bit per URL, o un BF di n*10 bits) si ottiene 0.0084 (0.84% di probabilità) che risulta essere un valore accettabile.
@@ -288,19 +292,18 @@ Questo approccio introduce possibili errori (falsi positivi):
 Evoluzione del tradizionale Bloom Filter:
 - miglior performance a scapito di un uso di memoria leggermente maggiore
 - inserimento e eliminazione possibili
-- utile per alcuni tipi di query (db, iceberg query) on uso esclusivo per search engine!
 
 SBF utilizza:
-- f(x): funzione che calcola la frequenza di x in un dato set S
-- vettore (C) di dimensione m contenente le frequenze mappate dalle funzioni di hash
-- h1...hk(x): k funzioni di hash
+- *f(x)*: funzione che calcola la frequenza di *x* in un dato set *S*
+- vettore *C* di dimensione *m* contenente le frequenze mappate dalle funzioni di hash
+- k funzioni di hash (*hi*)
 
 Come nel BF, le posizioni in C non sono univoche e possono presentarsi collisioni.
 
 Procedimento:
-- f(x) viene valutata, restituento una quantità q
-- vengono calcolate le k funzioni h, ottenendo gli indici i1...ik
-- I valori in i1...ik vengono incrementati di q.
+- f(x) viene valutata, restituento una quantità *q*
+- vengono valutate le k funzioni hash, che restituiscono gli indici *i1, i2, ... , ik*
+- I valori in *i1, i2, ... , ik* vengono incrementati di q.
 
 Per l'**inserimento**, basta valutare le funzioni h(x) e incrementare di uno i contatori corrispondenti.  
 Per la **rimozione**, come per l'inserimento ma decrementando.  
@@ -413,15 +416,14 @@ Per migliorare ulteriormente la compressione è possibile cambiare il tipo di me
 - link extra 
 
 
-| Node | Outd  | Ref | # blocks| copy blocks | extra nodes |
-| :--: | :--: | :--: | :--: | :--: | :--: |
-| 15 | 3 | 0 |   |       | 10, 11, 12 |
-| 16 | 4 | 1 | 3 | 1,1,0 | 13, 14     |
+| Node  | Outd  |  Ref  | # blocks | copy blocks | extra nodes |
+| :---: | :---: | :---: | :------: | :---------: | :---------: |
+|  15   |   3   |   0   |          |             | 10, 11, 12  |
+|  16   |   4   |   1   |    3     |    1,1,0    |   13, 14    |
 
 
 ## Locality-sensitive hashing (LSH)
 
-Contesto vasto.   
 Dati:
 - *U* users
 - set od *d* features
@@ -438,7 +440,7 @@ Possibili soluzioni:
   - confrontare gli attribuiti dei vari punti ha costo O(d)
   - provare i vari K (senza saperlo a priori) ha costo `U^3`
     - vista la relazione `U = tempo^(1/3)`, incrementare la potenza computazionale di un fattore `s` di fatto migliora i tempi di solo `s^(1/3)`
-- Introdurre fingerprint per far si che elemnti di U simili diventino uguali: facili da confrontare, costo ridotto
+- LSH: introdurre fingerprint per far si che elemnti di U simili diventino uguali: facili da confrontare, costo ridotto
 
 Locality-sensitive hashing appartiene a quest'ultima categoria.  
 Appunti prof: https://www.dropbox.com/s/ovavpl1s0yu71fo/Archivio29.09.2020.zip?dl=0
@@ -498,13 +500,13 @@ Come utilizzare tutto ciò, aka come capire quali sono le pagine simili?
 - ...
 - ordinare  g() per hIl()
 
-p | gI1 | gI2
-:-: | :-: | :-:
-p1  | 0   | 3
-p2  | 1   | 0
-p3  | 1   | 2
-p4  | 3   | 0
-p5  | 3   | 1
+|   p   |  gI1  |  gI2  |
+| :---: | :---: | :---: |
+|  p1   |   0   |   3   |
+|  p2   |   1   |   0   |
+|  p3   |   1   |   2   |
+|  p4   |   3   |   0   |
+|  p5   |   3   |   1   |
 
 Costruisco trasitivamente le similità tra le varie pagine:  
 p2 e p3 sono simili attraverso gI1; p2 e p4 sono simili per gI2; p3 e p4 sono simili.  
@@ -521,7 +523,7 @@ In sostanza, vado a prelevare e confrontare pagine che so essere rimili, e poi t
 
 ## LSH vs K-m
 
-Slide
+Slide 
 
 ## Duplication
 
@@ -579,16 +581,194 @@ Per cui ho una approssimazione di Jac-sim
   - cos(a) range tra -1 e 1
   - Il vantaggio è che l'angolo è indipendente dalla lunghezza del vettore (aka la dimensione della pagina)
 
-<!--
-We run a sequence of random vector r1 ... rk  that we compute for p and q
+Come funziona:
+Vengono generati r1 ... rk vettori che computiamo per p e q:
 - sign(p X ri) = alfa -> { 1 se 0 < alfa < 90, 0 se 90 < alfa < 180}
   - per p e q avremmo una sequenza lunga k di 0 e 1 
-- P(hr(p) = hr(1)) = 1 - a / PI
-- -->
+- P(hr(p) = hr(1)) = 1 - alfa / PI
 
 
-# TODO
+# Lezione 9
+
+Nota sulla gerarchia di memoria:
+- registri cpu (reg)
+- cache (ca)
+- ram (mem or M)
+- hd
+- net
+
+Criticità:  
+- spatial locality (i dati vengono prelevati dalla memoria in blocchi, è importante che in uno stesso blocco abbia sia il dato necessario in quel momento che i dati che mi serviranno per gli step successivi dell'algoritmo)
+- Temporal locality usare i dati finche sono disponibili in memoria!
+  
+
+**Problema: sorting degli elementi (STRINGHE), risorse temporali/spaziali.**
+Quando si fa il sorting di A, A contiene i puntatori a stringhe, quindi non solo devrò confrontare stringhe ma anche tenere conto di eventuali miss nella memoria. (Gli elementi di A sono adiacenti, gli elementi puntati da A no!)
+
+Approssimativamente, con un normale algoritmo di sorting, rischio di incappare in O(n logn) IO operation in random memory
+
+## SPIMI
+Algoritmo per la generazione di inverted list.  
+
+Si abbia un set di documenti d1, d2 ... dk che prend il nome di *blocco*.  
+Processo ogni documento, e per ogni termine creo una sola inverted list contenente gli id dei documenti in cui il termine compare (se "abaco" compare in d1 e d3, in memoria avrò  "abaco -> 1, 3")  
+
+Processato un blocco, lo flushiamo nel disco (liberando la memoria interna) e procediamo a processare il blocco successivo (con una nuova IL).
+
+Approccio alternativo: una sola tabella per costruire l'IL.
+- Creare una unica tabella 
+- Per ogni termine di ogni documento viene inserita una nuova entry nella tabella < termine, id doc >
+- sort stabile (serve per la frequenza dei termini)
+- parole uguali saranno affiancate, scansionando la tabella è facile costruire l'IL e tenere traccia della frequenza dei termini
+Create a unique table, then you store for each documente tutte le parole ssociando l'id del cocumento (ci saranno duplicati)
+
+sort (stabile! importante mantenere l'ordine dei documenti) alfabeticamente
+
+Parole uguali saranno affianco, per trovare una parola semplicemente la ricerco, e partendo dalla prima ottengo tutte le parole che cerco (e posso calcolare la frequenza!)
+
+Problema: sorting di stringhe di lunghezza variabile crea complicazioni per la memorizzazione. Soluzione:  
+Quando faccio lo scan del documento, inserisco le parole in un hash table (associo ad ogni parola un identificativo, e non ho ripetizioni, quindi la memoria occupata dall'hash table è poca è posso tenerla in memoria tutto il tempo (NB questa è una assunzione))
+
+- scanning dei documenti per inserire nell'hashtable (dictionary)
+- sort dell'hash table (veloce perchè memoria interna) e associo ad ogni toke un id "lessografico" -> parola 1 < parola 2 allora id(parola 1) < id(parola 2)
+- scan dei documenti (di nuovo) e inserisco nell'unique table, con coppia id_documento (come prima) e id(pa rola) (l'id assegnato nell'hash table) così da avere due indici interi
+- sort della unique table (come prima)
+- decoding per la ricerca usando l'hash table
+
+### Big data sorting 
+
+Riguardo all'algoritmo di sorting, esso deve essere realizzato ad hoc, perchè dobbiamo ordinare miliardi di valori.
+
+Assumiamo set di interi (termId).  
+M = dimensione memoria interna.  
+B = dimensione pagina sul disco (quanti byte sono conivolti per ogni read write)  
+#blocchi  = n/M dove n presumo sia la memoria totale dei dati da ordinare  
+
+1) Dividiamo la tabella in blocchi di dimensione M  
+   Su ogni blocco si fa fetch (M/B), sort (in ram, quindi veloce), write (M/B)  
+   Quanto costa il totale? 2 M/B * n/M = n/B
+
+2) Dopo viene fatto un multiway-merge: sul disco abbiamo già dei blocchi ordinati (risultato di iteerazioni precedenti) quindi dal disco viene preso un blocchetto all'inizio di ognuno di essi, finchè ho spazio in memoria. Uso il multi-merge, e quando output è pieno allora scrivo sul disco  
+
+## Distributed indexing
+
+Big data richiede sistemi distribuiti per creare le IL, quindi viene usato un cluster.  
+Poichè le macchine possono rompersi, è necessaria una gestione particolare.
+
+- master: gestisce le altre macchine
+- idle machine: si occupano del lavoro, possono ricoprire diversi ruoli
+
+**DOCUMENT BASED:** 
+- Ogni macchina si occuperà di una serie di blocchi (sets)
+- Ogni set è assegnato ad un *parser*: il parser genera la tabella idTerm idDoc
+- Ad ogni parser è associato un inverter, il parser invia le coppie ad una macchina *inverter* il cui compito è creare l'inverted list.
+- Al termine, avremmo tante inverted list
+
+Quando facciamo una query, essa deve essere processata su diverse Inverted List!
+
+**TERM BASED:**
+
+- Ogni macchina si occuperà di una serie di blocchi (sets)
+- Ogni set è assegnato ad un *parser*, e il parser genera la tabella (le coppie idTerm idDoc) e poi *parziona il risultato secondo un criterio arbitrario (es, 3 gruppi basandosi sulla prima letterea del termine)*
+- Ogni diversa partizione è inviata ad uno specifico inverter. (es, inverter per il primo gruppo, inverter per il secondo, inverter per il terzo)
+- Gli inverter creano le IL
+
+Un buon criterio di partizionamento deve essere effettuabile da ogni parser, per esempio hashing.
+
+
+___
+___
+
+# Lezione 10
+
+## Dinamic Indexing
+
+**Soluzione 1:**  
+
+N = dimensione di tutta la collezione
+
+teniamo due inverted list i1 (in mem M) e i2 (sul disk) (dictionary)  
+quando i1 è grande quanto d, allora i1 è meged con i2  
+Per fare il merge, se x è in i1 e non in i2, inserisco e basta. se x è anche in i2, appendo le due index list. (linear cost)  
+In totale faremo O(N/M) chiamate di funzioni merge  
+Il costo totale dei merge merge è:  
+- M 0 -> M
+- M M -> 2M
+- M 2M -> 3M
+- ...
+
+O(M * sommatoria) = M* (N/M)^2 = O(N^2 / M)  
+se M è circa N allora O(N^2 / M) -> O(N) = O(M)  
+
+**Soluzione 2:**  
+
+Logaritmic merge: 
+
+Internal memory M e disk( Im I2m I3m ... I 2^i m) con i <= log2N/M
+Riempiamo la memoria con i documenti. Quando la memoria è piena, allora facciamo una sequenza di merge:  
+riempio Im, se Im è vuoto, inserisco con un merge, se è pieno allora guardo l'indice successivo e così via.   Quando passo a una nuova Iim, butto tutto dentro al nuovo I svuotando gli I precedenti
+- Im con 0 -> Im
+- Im con Im -> I2M
+- Im con Im, I2m -> I4m
+
+.  # merges is log2 N/M
+1 query trigger O(logN/M) query
+
+
+## Compression of documents
+
+Per i motori di ricerca, ritornare durane una ricerca parte del contesto è importante. È necessario quindi memorizzare i documenti (compressi).  
+
+Due gli aspetti da tenere in considerazione: compressione veloce, e decompressione ancora più veloce!
+
+### LZ 777
+
+cerca la più lunga stringa che hai già incontrato, sostituisci con una tripla
+<x, y, z>:
+
+- x: quante poszioni indietro è la stringa già incontrata
+- y: lunghezza della stringa attuale
+- z: il carattere successivo (è necessario per inizio stringa, e quando non puoi copiare)
+
+Quando scansioni, vai avanti finchè puoi, anche con overlapping.
+
+In genere per trovare un match non si controlla tutta la stringa già analizzata, ma solo quella che rientra in una "finestra".  
+**Larger the window, slower is the decompression and faster is the compression (read less triples)**  
+
+Decompressione è fatta sequenzialmente, perchè se no non potremmo risolvere l'overlapping.  
+Ma che succede se abbiamo len > dist? No prob se decompressione fatta sequenzialmente.
+
+
+### Compression and networking
+
+Se i dati devono essere inviati sulla rete, va tenuto conto di due fattori: 
+- tempo di invio, che quindi porterebbe a prediligere tecniche di compressioni piu efficaci in modo da ridurre la quantità di dati da inviare
+- tempo di decompressione
+
+È necessario trovare un compromesso: comprimere "troppo" per minimizzare il tempo di invio è inutile se la decompressione diventa troppo lenta come conseguenza.
+
+
+# Lezione 11
+caching: avoid sending the same obj aagain
+
+compression remove redundancy in trasmitted data
+
+# Lezione 12
+- tokenization
+- 
+
+
+# Leione 13
+
+
+
+# TODO 
+
 
 - K-B fingerprint
 - cosine distance / smilarity
+- [Big data sorting merge](#big-data-sorting)
+- [Dinamic Indexing](#dinamic-indexing)
+- Tutta lezione 11
+
 
