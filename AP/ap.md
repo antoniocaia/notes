@@ -1,16 +1,15 @@
 # Advanced Programming (DRAFT) <!-- omit in toc --> 
 
-- [Ch.1 Abstract machine e PL](#ch1-abstract-machine-e-pl)
+- [Lez. 1-3: Abstract machine e PL](#lez-1-3-abstract-machine-e-pl)
 	- [Da sapere](#da-sapere)
 	- [Abstract Machine](#abstract-machine)
 	- [Interpreter](#interpreter)
 	- [Implementazione di un AB](#implementazione-di-un-ab)
 	- [Implementazione puramente interpretata e compilata](#implementazione-puramente-interpretata-e-compilata)
-- [Ch.2](#ch2)
+- [Lez. 4-?:](#lez-4-)
 	- [Runtime system and JVM](#runtime-system-and-jvm)
-	- [](#)
 
-# Ch.1 Abstract machine e PL
+# Lez. 1-3: Abstract machine e PL
 
 ## Da sapere
 
@@ -113,12 +112,11 @@ You can define a "common intermediate language" (CIL), so you can compile differ
 Plus, if you create a new language, you don't need a new brand compiler, but you can use the CIL so you compiler will be way easier.  
 In CLI the code CIL is then compiled again and only then executed by an interpreter.
 
-# Ch.2 
+# Lez. 4-?: 
 
 ## Runtime system and JVM
 
-A PL define an execution model.  
-A runtime ssytem implements part of exececution model, providind support during exec.  
-Runtime support is needed for interpreter and compiler
 
-## 
+
+
+

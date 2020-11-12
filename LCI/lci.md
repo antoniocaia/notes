@@ -26,7 +26,7 @@
 		- [Computing Gotos](#computing-gotos)
 		- [Filling Action and Goto tables](#filling-action-and-goto-tables)
 - [Lezione 9](#lezione-9)
-	- [Context-sensitive analysisi or semantic elaboration](#context-sensitive-analysisi-or-semantic-elaboration)
+- [Lezione 10](#lezione-10)
 
 
 
@@ -426,7 +426,10 @@ sia `[A→β•C δ,a]` un elemento di s, allora vengono aggiunti
  			then GOTO[x,n] ← k
  ```
 
- # Lezione 9
+# Lezione 9
 
- ## Context-sensitive analysisi or semantic elaboration
+http://pages.di.unipi.it/gori/Linguaggi-Compilatori2020/ContextSensitiveAnalysisII.pdf
 
+# Lezione 10
+
+http://pages.di.unipi.it/gori/Linguaggi-Compilatori2020/IntermediateRepresentations.pdf
