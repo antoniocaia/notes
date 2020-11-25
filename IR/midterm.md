@@ -4,7 +4,7 @@
 	- [Recursive Merge](#recursive-merge)
 - [Crawler](#crawler)
 	- [Life-cycle Crawler](#life-cycle-crawler)
-- [Mercator](#mercator)
+	- [Mercator](#mercator)
 - [Bloom Filter](#bloom-filter)
 - [Spectral Bloom Filter](#spectral-bloom-filter)
 	- [Problemi in SBF](#problemi-in-sbf)
@@ -25,6 +25,28 @@
 	- [DOCUMENT BASED](#document-based)
 	- [TERM BASED: (MapReduce)](#term-based-mapreduce)
 - [Dinamic indexing](#dinamic-indexing)
+- [LZ77](#lz77)
+- [Z-delta](#z-delta)
+- [Rsync](#rsync)
+- [Zsync](#zsync)
+- [Parsing](#parsing)
+	- [tokenization](#tokenization)
+	- [normalization](#normalization)
+	- [lemmatization](#lemmatization)
+	- [stemming](#stemming)
+	- [thesauri](#thesauri)
+- [Statistical properties](#statistical-properties)
+	- [Zipf Law](#zipf-law)
+	- [Heap Law](#heap-law)
+- [Keyword extraction](#keyword-extraction)
+	- [Statistical](#statistical)
+	- [Pearson's che-square (bigrams)](#pearsons-che-square-bigrams)
+	- [Rapid Automatic Keyword Extraction](#rapid-automatic-keyword-extraction)
+	- [Spell correction](#spell-correction)
+- [Edit distance](#edit-distance)
+- [n-gram](#n-gram)
+	- [Wildcard query](#wildcard-query)
+	- [Soundex](#soundex)
 
 ## Boolean retrieval model
 
@@ -168,7 +190,7 @@ Il "link extractor" preleva una pagina da *PR* e cerca eventuali link, per inser
 
 Con che criterio vengono scelte le pagine dall'*AR*? Dipende dalla policy scelta: BFS, DFS, Random, Popularity driven, Page Rank, topic driven, combined.  
 
-## Mercator
+### Mercator
 Marcator è un crawler che segue alcune semplici regole:
 - una sola richiesta alla volta per host, in modo da non sovraccaricare l'host
 - aspettare alcuni secondi tra una query e l'altra 
@@ -386,7 +408,7 @@ Jaccard similarity `(sim) = Sa inter Sb / Sa union Sb`
 
 #### min-hashing
 
-Come ottenere Jaccard-sim? Uso **Min-hashing**  
+Come ottenere Jaccard-sim? Uso Min-hashing  
 
 Set di shingles. Trasformiamo le stringhe in valori numerici, modulo 2^64.  
 Calcolare l'intersezione richiede iterazioni, ed è troppo costoso! Soluzione:  
@@ -440,7 +462,7 @@ Non vengono usati i valori effettivi dei termini ma piuttosto un valore univoco 
 Per quanto riguarda il sorting dei termini, è necessario un algoritmo che utilizzi il disco poichè la memoria risulta insufficiente.
 
 ### BSBI sorting (multi-way merge sort)
-- i documentisono divisi in blocchi facilemnte genstibili nella memoria.
+- i documenti sono divisi in blocchi facilemnte gestibili nella memoria.
 - sequenzialmente i blocchi vengono prelevati dal disco e caricati in memoria.
 - quando un blocco è caricato in memoria viene creata la corrispondente posting list.
 - la posting list è memorizzata sul disco, e il successivo blocco viene caricato ed elaborato.
@@ -485,3 +507,127 @@ Un buon criterio di partizionamento deve essere effettuabile da ogni parser, per
 
 <!-- Todo -->
 PAG 115
+
+## LZ77 
+<!-- Todo -->
+
+## Z-delta
+<!-- Todo -->
+
+## Rsync
+<!-- Todo -->
+
+## Zsync
+<!-- Todo -->
+
+## Parsing 
+
+### tokenization
+
+La trasformazione dei termini in token non deve cambiare il significato di certe parole.
+Es: nomi e cognomi (specialmente di personaggi famosi)   
+Es: nomi composti (San Francisco)  
+Es: Numeri  
+
+
+### normalization
+
+Normalizzazione prevede dove opportuno di eliminare caratteri speciali che alterano la forma di un termine senza cambiarne il significato.  
+Es: gli acronimi, come U.S.A e la versione "semplice" USA.  
+Es: '-' usato per separare termini di parole composte  
+
+### lemmatization
+
+Ricondurre variazioni/declinazioni alla forma base di una parola.  
+Es: tutti i verbi coniugati vengono riportati alla loro forma all'infinito.  
+Es: forme plurali o abbreviazioni vengono riportate alla loro forma base singolare.
+
+### stemming
+
+Troncamento dei termini in modo da ottenere la radice di una parola. Attraverso la radice è possibile risalire a termini con significato uguale o simile. 
+
+### thesauri
+
+Gestione di sinonimi e omonimi.
+
+## Statistical properties
+### Zipf Law
+
+Zipf law prevede che la distribuzione dei token/termini in un testo sia uniforme:
+- pochi token sono molto frequenti
+- alcuni token hanno una frequenza media
+- molti token sono poco frequenti
+
+I primi 100 token costituiscono in genere il 50% del testo, e molti di questi token sono stop words.
+
+Le stop words sono quei termini di uso molto frequente ma quasi privi di significato, come articoli, preposizioni, etc.  
+Utilizzando buone tecniche di compressione e di ottimizzazione le stop words hanno un impatto molto ridotto.
+
+Formalmente la Zipf Law prevede che il *k-th* token abbia frequenza di *1/k*.  
+Equivalentemente, il prodotto tra la frequenza e il rank *k* è costante, per cui:  
+```
+k * f(k) = c
+f(k) = c / k
+
+Da cui si ha la legge generale:
+f(k) = c / k^s		s = 1.5-2.0
+```
+Zipf Law è una *power law* e il suo grafico log-log è quindi una retta
+
+### Heap Law
+
+La Heap Law definisci la crescita del numero di token distinti.
+Se *n* è il totale numero di token, allora si hanno *n^b* distinti token, con *b* circa 0.5.  
+
+La heap Law suggerisci due importanti considerazioni:  
+- la dimensione del dizionario continua a crescere all'aumentare dei documenti nella collezione (invece di arrestarsi ad un certo punto)
+- La dimensione del dizionario risulta essere considerevole per grandi collezioni di documenti.
+
+<!-- Todo LUHN -->
+
+## Keyword extraction 
+
+Collocation: due o più parole che, quando affiancate, assumono un significato particolare.  
+I termini di questi particolari costrutti non possono essere sostituiti con sinonimi o modificati, e spesso non è possibile comprenderne il significato dall'analisi dei suoi termini.
+
+### Statistical
+
+Un approccio statistico usa frequenza e Part-of-Speach tagging. 
+Utilizzare solo la frequenza di coppie di termini è poco utile a causa dell'alta frequenza di stop words.  
+Introducendo PoS è possibile definire un ranking utilizzando solo alcune tuple (Es, ignoriamo le coppie articolo-preposizione e consideriamo invece le coppie nome-nome, nome-aggettivo, etc)
+
+Utilizzare frequenza e PoS tuttavia non tiene conto della flessibilità della lingua: due parole "connesse" possono trovarsi a una distanza (numero di termini che separano le due parole) variabile.  
+Viene quindi computata la media e la viarianza delle distanze all'interno di una finestra. Vengono scartate le coppie con varianza troppa alta, e prese quelle con media > 0 e varianza piccola.
+
+### Pearson's che-square (bigrams)
+
+Da qui:
+https://github.com/rmassidda/ir-2019
+
+### Rapid Automatic Keyword Extraction
+
+Da qui:
+https://github.com/rmassidda/ir-2019
+
+### Spell correction
+
+## Edit distance
+
+## n-gram
+
+
+### Wildcard query
+
+Caso generale:
+- utilizzo un B-tree per le query in cui *\** compare alla fine 
+- utilizzo un reverse B-tree per le query in cui *\** compare all'inizio
+- per le query in cui *\** compare in una posizione intermedia (sc*ool) viene utilizzato il B-tree per la sottoquery sc\*, il reverse B-tree per la sottoquery \*ool, e infine viene fatta l'intersezione dei risultati.
+
+L'intersezione è troppo costa, viene quindi utilizzato un permutem index.  
+Aggiungendo il carattere *$* alla fine della query e ruotanto i caratteri è possibile ricondursi ad il caso con *\** al termine della query.
+
+
+### Soundex
+
+Alterare le query in modo che spelling diversi ma con suoni simili diano gli stessi risultati.  
+Si creano set di lettere da sostituire con valori generici. 

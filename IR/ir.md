@@ -41,10 +41,9 @@
 	- [Compression of documents](#compression-of-documents)
 		- [LZ 777](#lz-777)
 		- [Compression and networking](#compression-and-networking)
-- [Lezione 11](#lezione-11)
-- [Lezione 12](#lezione-12)
-- [Leione 13](#leione-13)
-- [TODO](#todo)
+	- [Lezione ?.1](#lezione-1-1)
+		- [Top-k (approssimazione)](#top-k-approssimazione)
+	- [Lezione ?.2](#lezione-2-1)
 
 # Lezione 1
 
@@ -359,7 +358,7 @@ Soluzioni:
 
 
 **Consistent hashing**: 
-- mapping dei crawler and url con la stessa funzione di hash. (Una buona funzione è `h(x) = a*x mod p` dove a casuale e p primo e p > max{I, S})
+- mapping dei crawler and url con la stessa funzione di hash. (Una buona funzione è `h(x) = a*x mod p` dove a casuale e p primo e p > |I|
   - crawler ids (cid): c1, c10, c16
   - URL ids (uid): u2, u14, u16, 19  
 - un url viene assegnato al primo crwaler il cui cid > uid
@@ -748,27 +747,38 @@ Se i dati devono essere inviati sulla rete, va tenuto conto di due fattori:
 È necessario trovare un compromesso: comprimere "troppo" per minimizzare il tempo di invio è inutile se la decompressione diventa troppo lenta come conseguenza.
 
 
-# Lezione 11
-caching: avoid sending the same obj aagain
 
-compression remove redundancy in trasmitted data
+## Lezione ?.1 
 
-# Lezione 12
-- tokenization
-- 
+### Top-k (approssimazione)
 
+We use cosine similarity
+Obbiettivo: trovare un sub set *k* 	di papabili elementi (Set A, |A| << N)
 
-# Leione 13
+1. Cerco tutti i documenti in cui compaiono più query term possibili. Se la query contiene 4 termini (|q| = 4) in genere ne cerco almeno q - 1. Uso AND tra le liste. Abbastanza costoso.
+2. High-IDF Usiamo liste in cui compaiono solo termini "rari" (liste più corte e più precise, perchè escludiamo i termini comuni e poco significativi con un basso rank, tipo articoli, "the", preposizioni)
+3. Assegnare ad ogni termine i suoi *m* migliori documenti. Per ogni termine della query, prendiamo le liste di best doc e facciamo il merge. Computiamo cosine sim tra la query e i documenti ottenuti dal merge, e scegliamo i top *k* documenti. (NB deve valere *m* > *k*). C'è il rischio che il migliore documento per la query non rientri tra nessuno dei top *m* documenti di ciascun termine, quindi non è infallibile come sistema.
+   t1 -> A, B, G  
+   t2 -> C, D, G  
+   t3 -> E, F, G  
+   *m* = 2; *k* = 1
+   G è il migliore ma non rientra tra i candidati dopo il merge!
+4. Fancy hits: 
+   Preprocess:
+   - per ogni documento ho list decreasing order by PR -> incremento doc-id con il decrementare del PR
+   - Prendo i top m documenti by tf-idf 
+   - ...
+5. Clustering: definisco per ogni cluster of doc un leader, la query viene comparata con i leader e sceglie quello pià vicino
 
+Problema: questi approcci sono tutti approssimativi, vogliamo una soluzione esatta e efficiente.  
+Ottimizzazione: non fare lo score di quelli che sappiamo non rientrare nei top k
 
+WAND e WAND ottimizzato
 
-# TODO 
+## Lezione ?.2
 
-
-- K-B fingerprint
-- cosine distance / smilarity
-- [Big data sorting merge](#big-data-sorting)
-- [Dinamic Indexing](#dinamic-indexing)
-- Tutta lezione 11
+precision = quanto accurato è il risultato di una query
+recall = quante informazioni rispetto al totale sono state restituite da una query
+NDCG = normalized discount cumulative gain
 
 
