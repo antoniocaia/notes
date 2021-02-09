@@ -1,58 +1,76 @@
-- [Boolean retrieval model](#boolean-retrieval-model)
-- [Inverted index](#inverted-index)
-	- [Skips](#skips)
+- [14.09.20](#140920)
+	- [Boolean retrieval model](#boolean-retrieval-model)
+	- [Matrix document-term](#matrix-document-term)
+	- [Inverted list](#inverted-list)
+- [15.09.20](#150920)
+	- [Skip pointers](#skip-pointers)
+	- [Zone index](#zone-index)
 	- [Recursive Merge](#recursive-merge)
-- [Crawler](#crawler)
-	- [Life-cycle Crawler](#life-cycle-crawler)
+- [22.09.2020](#22092020)
+	- [Crawling](#crawling)
+		- [Life-cycle Crawler](#life-cycle-crawler)
 	- [Mercator](#mercator)
-- [Bloom Filter](#bloom-filter)
-- [Spectral Bloom Filter](#spectral-bloom-filter)
-	- [Problemi in SBF](#problemi-in-sbf)
-- [Locality-sensitive hashing (LSH)](#locality-sensitive-hashing-lsh)
-	- [Funzionamento LSH](#funzionamento-lsh)
-	- [Utilizzo LSH](#utilizzo-lsh)
-- [Exact-duplicate documents](#exact-duplicate-documents)
-	- [Karp-Rabin's rolling hash](#karp-rabins-rolling-hash)
-- [Near-duplicate documents](#near-duplicate-documents)
-	- [Shingling](#shingling)
-	- [Jaccard similarity](#jaccard-similarity)
-		- [min-hashing](#min-hashing)
-	- [Cosine similarity](#cosine-similarity)
-- [BSBI (Blocked sort-based indexing)](#bsbi-blocked-sort-based-indexing)
-	- [BSBI sorting (multi-way merge sort)](#bsbi-sorting-multi-way-merge-sort)
-- [SPIMI (Single-pass in-memory indexing)](#spimi-single-pass-in-memory-indexing)
-- [Distributed indexing](#distributed-indexing)
-	- [DOCUMENT BASED](#document-based)
-	- [TERM BASED: (MapReduce)](#term-based-mapreduce)
-- [Dinamic indexing](#dinamic-indexing)
-- [LZ77](#lz77)
-- [Z-delta](#z-delta)
-- [Rsync](#rsync)
-- [Zsync](#zsync)
-- [Parsing](#parsing)
-	- [tokenization](#tokenization)
-	- [normalization](#normalization)
-	- [lemmatization](#lemmatization)
-	- [stemming](#stemming)
-	- [thesauri](#thesauri)
-- [Statistical properties](#statistical-properties)
-	- [Zipf Law](#zipf-law)
-	- [Heap Law](#heap-law)
-- [Keyword extraction](#keyword-extraction)
-	- [Statistical](#statistical)
-	- [Pearson's che-square (bigrams)](#pearsons-che-square-bigrams)
-	- [Rapid Automatic Keyword Extraction](#rapid-automatic-keyword-extraction)
-	- [Spell correction](#spell-correction)
-- [Edit distance](#edit-distance)
-- [n-gram](#n-gram)
-	- [Wildcard query](#wildcard-query)
-	- [Soundex](#soundex)
-
+	- [Bloom Filter](#bloom-filter)
+- [28.09.2020](#28092020)
+	- [Spectral Bloom Filter](#spectral-bloom-filter)
+		- [Problemi in SBF](#problemi-in-sbf)
+	- [Consistent Hashing](#consistent-hashing)
+- [29.09.2020](#29092020)
+	- [Locality-sensitive hashing (LSH)](#locality-sensitive-hashing-lsh)
+		- [Funzionamento LSH](#funzionamento-lsh)
+		- [Utilizzo LSH](#utilizzo-lsh)
+	- [Exact-duplicate documents](#exact-duplicate-documents)
+		- [Karp-Rabin's rolling hash](#karp-rabins-rolling-hash)
+	- [Near-duplicate documents](#near-duplicate-documents)
+		- [Shingling](#shingling)
+		- [Jaccard similarity](#jaccard-similarity)
+			- [min-hashing](#min-hashing)
+		- [Cosine similarity](#cosine-similarity)
+	- [BSBI (Blocked sort-based indexing)](#bsbi-blocked-sort-based-indexing)
+		- [BSBI sorting (multi-way merge sort)](#bsbi-sorting-multi-way-merge-sort)
+	- [SPIMI (Single-pass in-memory indexing)](#spimi-single-pass-in-memory-indexing)
+	- [Distributed indexing](#distributed-indexing)
+		- [DOCUMENT BASED](#document-based)
+		- [TERM BASED: (MapReduce)](#term-based-mapreduce)
+	- [Dinamic indexing](#dinamic-indexing)
+	- [LZ77](#lz77)
+	- [Z-delta](#z-delta)
+	- [Rsync](#rsync)
+	- [Zsync](#zsync)
+	- [Parsing](#parsing)
+		- [tokenization](#tokenization)
+		- [normalization](#normalization)
+		- [lemmatization](#lemmatization)
+		- [stemming](#stemming)
+		- [thesauri](#thesauri)
+	- [Statistical properties](#statistical-properties)
+		- [Zipf Law](#zipf-law)
+		- [Heap Law](#heap-law)
+	- [Keyword extraction](#keyword-extraction)
+		- [Statistical](#statistical)
+		- [Pearson's che-square (bigrams)](#pearsons-che-square-bigrams)
+		- [Rapid Automatic Keyword Extraction](#rapid-automatic-keyword-extraction)
+		- [Spell correction](#spell-correction)
+	- [Edit distance](#edit-distance)
+	- [n-gram](#n-gram)
+		- [Wildcard query](#wildcard-query)
+		- [Soundex](#soundex)
+- [23.11.2020](#23112020)
+	- [high idf](#high-idf)
+	- [champion lists](#champion-lists)
+	- [many query-terms](#many-query-terms)
+	- [fancy hits](#fancy-hits)
+	- [clustering](#clustering)
+	- [WAND](#wand)
+	- [blocked-WAND.](#blocked-wand)
+# 14.09.20
 ## Boolean retrieval model
+Una query booleana è una query in cui i termini sono messi in relazione tramite keywords booleane (**AND, OR, NOT ...**).  
 
-Una query booleana è una query che connette diversi termini di ricerca con le keywords **AND, OR, NOT**.  
-Per processare query booleane esistono diversi approcci:  
-una prima soluzione fa uso di una tabella booleane dove le righe rappresentano i termini e le colonne i documenti in cui ricercare.
+## Matrix document-term
+**Funzione:** struttura su cui processare query booleane.
+
+Un primo approccio per processare query booleane fa uso di una tabella booleane in cui le righe rappresentano i termini e le colonne i documenti in cui ricercare.
 
 |            | Hamlet | Othello | Macbeth |
 | ---------- | :----: | :-----: | :-----: |
@@ -68,10 +86,10 @@ ovvero la terza colonna, *Macbeth*.
 Una matrice di queste dimensioni non è utilizzabile quando si hanno milioni di documenti e di termini a causa dell'enorme memoria necessaria alla sua memorizzazione.
 
 
-## Inverted index
+## Inverted list
+**Funzione:** struttura su cui processare query booleane.
 
-Un altro approccio per processare query boolean è quello dell'inverted inex.  
-Le matrici booleane sono sparse. Memorizzando solo i valori diversi da 0, è possibile occupare solo 1-3% della memoria necessaria alla matrice. 
+Le inverted list rappresentano un'evoluzione delle matrici doc-term. Le matrici booleane sono sparse. Memorizzando solo i valori diversi da 0, è possibile occupare solo 1-3% della memoria necessaria alla matrice. 
 
 Vengono utilizzate al posto della matrice delle liste (una per ciascun termine di ricerca) contenenti gli identificativi dei documenti. Ad ogni documento viene assegnato un identificativo univoco.
 Due termini appartengono allo stesso documento solo se in entrambe le rispettive liste è presente lo stesso identificatore di documento.  
@@ -80,7 +98,7 @@ Riprendendo l'esempio della query `Antony AND Caesar`, quanti confronti sono nec
 - liste non ordinate: **n\*m**
 - liste ordinate: **n+m**
 
-E' fondamentale le liste siano ordinate in modo da utilizzare un algoritmo che confronti sequenzialmente gli id delle liste, e possa incrementare il minore dei due ad ogni iterazione.
+E' fondamentale le liste siano ordinate in modo da utilizzare un algoritmo che confronti sequenzialmente gli id delle liste, e possa incrementare il minore dei due ad ogni iterazione. L'intersezione delle posting list è infatti l'aspetto più critico:
 ```
 intersect(p1, p2) {
 	answer = empty_list;
@@ -108,9 +126,11 @@ E' possibile risparmiare memoria memorizzando:
 `| 12345780 | 1 | 3 |`  
 
 
-Nel caso vengano utilizzati più termini di ricerca, una possibile modifica è quella di effettuare i confronti sempre a coppie, partendo dalle due liste con un numero minore di elementi e utilizzando il risultato come lista temporanea. In questo modo infatti il risultato di ogni iterazione avrà come risultato una lista lunga al più quanto la più piccola delle due liste utilizzate.
+Nel caso vengano utilizzati più termini di ricerca,vengono effettuati i confronti sempre a coppie, partendo dalle due liste con un numero minore di elementi e utilizzando il risultato come lista temporanea. In questo modo il risultato di ogni iterazione avrà come risultato una lista lunga al più quanto la più piccola delle due liste utilizzate.
 
-### Skips
+# 15.09.20
+## Skip pointers
+**Funzione:** ottimizzare lo scorrimento parallelo delle posting list  
 
 Scorrere parallelamente due liste, specialmente se di dismensioni molto diverse, comporta uno spreco di tempo.  
 
@@ -130,8 +150,13 @@ Il caso peggiore prevede **n/L - 1** confronti per arrivare all'ultimo blocco, e
 
 Un differente approccio di ottimizzazione prevede di usare blocchi di dimensione variabile. Ad ogni ID è associata la rispettiva frequenza con cui sono il risultato di uan query. La lista viene segmentata in modo che gli ID con una frequenza maggiore siano elementi di testa dei blocchi. In questo modo, quando viene effettuato un salto, saranno i documenti meno richiesti ad essere saltati, e sarà più probabile che l'elemento in testa del successivo blocco sia quello ricercato.
 
+## Zone index
+**Funzione:** ottimizzare l'utilizzo di query associando alle diverse parti di un documento dei metadati.
 
-### Recursive Merge
+Attraverso un zone index è possibile specificare in quale parte di un documento (titolo, corpo, autore) si voglia andare a ricercare i termini.
+
+## Recursive Merge
+**Funzione:** ottimizzare lo scorrimento parallelo delle posting list, alternativa agli skip pointers
 
 Recursive merge è un algoritmo alternativo agli skips.  
 Dalla lista (e sottoliste) con meno elementi viene selezionato l'elemento centrale. Attraverso una ricerca binaria viene ricercato (o "collocato" nel caso non sia presente) nella lista con più elementi. Ricorsivamente viene riapplicato l'algoritmo, utilizzando però le sottoliste "nate" dalla ricerca binaria.
@@ -157,9 +182,10 @@ Con AND NOT la complessività è sempre **n+m**, ma sono richiesti controlli add
 
 OR NOT invece crea problemi: `Antony OR NOT Caesar` ritorna miliardi di pagine poichè NOT Caesar ritorna tutte i documenti che non contengono Caesar, e OR fa si che vengano presi tutti i risultati.
 
-## Crawler
+# 22.09.2020
+## Crawling
 
-Il web crawling è il processo attraverso il quale è possibile raccogliere e indicizzare pagine in web in modo da supportare il lavoro di un mototre di ricerca.
+Il web crawling è il processo attraverso il quale è possibile raccogliere e indicizzare pagine in web in modo da supportare il lavoro di un motore di ricerca.
 
 Le caratteristiche che un crawler deve possedere sono molteplici
 - Robusto: essere in grado di riconoscere ed evitare "trappole"
@@ -169,7 +195,7 @@ Le caratteristiche che un crawler deve possedere sono molteplici
 
 Quando si fa crawling, le considerazioni da fare sono:
 - Copertura: quanto è grosso il web e quanto ne vogliamo coprire
-- Copertura relativa: la competizioni quanto web indicizza
+- Copertura relativa: la competizione (altre aziende) quanto web indicizzano di già?
 
 Infine, quanto spesso fare crawling?
 - freschezza: quanto è cambiata una pagina dall'ultima visita 
@@ -190,7 +216,7 @@ Il "link extractor" preleva una pagina da *PR* e cerca eventuali link, per inser
 
 Con che criterio vengono scelte le pagine dall'*AR*? Dipende dalla policy scelta: BFS, DFS, Random, Popularity driven, Page Rank, topic driven, combined.  
 
-### Mercator
+## Mercator
 Marcator è un crawler che segue alcune semplici regole:
 - una sola richiesta alla volta per host, in modo da non sovraccaricare l'host
 - aspettare alcuni secondi tra una query e l'altra 
@@ -205,8 +231,7 @@ Il time-stamp è calcolata sommando il tempo di esecuzione della pagina preceden
 L'heap restituisce l'URL con il tempo minore (p1), il crawler visita la pagina. L'heap deve rimpiazzare p1 con una pagina proveniente dallo stesso host (p2), e per fare ciò assegna come time-stamp a p2 un tempo pari a t(p1) + delta. Questo è applicabile nel caso p2 sia presente. Se per quell'host la queue è vuota, allora andiamo a prendere una pagina tra le front queue (stando attenti che non sia una pagina il cui host ha già una queue assegnata).
 
 ## Bloom Filter
-
-Bloom filter è una tecnica utilizzata per determinare se una pagina è già stata visitata (da un crwaler) in modo da evitare *page duplication*.  
+**Fuzione:** il Bloom filter è una tecnica utilizzata per determinare se una pagina è già stata visitata (da un crwaler) in modo da evitare *page duplication*.  
 
 Un Bloom Filter prevede l'uso di:
 - array binario *B* (dimensione *m*) inizializzato con soli 0
@@ -227,9 +252,10 @@ Questo approccio introduce possibili errori (falsi positivi):
 - Attraverso il bloom filter c'è un risparmio considerevole di memoria: con l'hashing memorizzare la stringa di un URL richiede in media 8 * 1000 bit, mentre con il bloom filter è possibile memorizzare anche solo 10 bit per URL.
 - Quante funzioni di hash sono necessarie? poichè `ln(2)` è trascurabile, scegliendo `m = 10n` k diventa circa 10.
 
+# 28.09.2020	
 ## Spectral Bloom Filter
 
-Spectral Bloom Filter rappresenta una evoluzione del BF e le sue applicazioni vanno oltre la *page duplication*.  
+Spectral Bloom Filter rappresenta una evoluzione del BF e le sue applicazioni vanno oltre la *page duplication* (Aggregate query)  
 Vantaggi SBF:
 - miglior performance a scapito di un uso di memoria leggermente maggiore
 - inserimento e eliminazione possibili
@@ -279,6 +305,9 @@ Per l'inserimento:
 
 Per l'eliminazione è come l'inserimento, solo che decremento.
 
+## Consistent Hashing
+
+# 29.09.2020	
 ## Locality-sensitive hashing (LSH)
 
 Dati:
@@ -315,7 +344,7 @@ Inoltre:
 - Invece di valutare D su p e q, valuto `D(hI(p), hI(q))`
   - Probabilità che presa una posizione x casuale in p e q i bit siano uguali: `P(x) = S^K`
 
-*Aumentando K riduciamo i falsi positivi (K = d comporta nessun falso positivo), ma aumentiamo i falsi negativi.*
+*Aumentando K riduciamo i falsi positivi (K = d comporta nessun falso positivo), <del>ma aumentiamo i falsi negativi<del>.*
 
 Soluzione: Definite L set I (e rispettive funzioni di hash) con K costante.  
 Iterare quindi tutte le L funzioni, e se anche una sola restituisce un match tra hIi(p) = hIi(q) allora definiamo p e q "uguali"  
@@ -332,7 +361,7 @@ Allora p è simile a q sse esiste un j tc hIj(p) = hIj(q)
 Sappiamo che la probabilità che due fingerprint siano uguali è `S^K`.  
 Quindi la probabilità che `g(p) = g(q)` è `P(g(p) = g(q)) = 1 - P(tutte hIj per p e q siano diverse)` da cui:  
 ```
-P(g(p) = g(q)) = 1 - [1 - S^K]
+P(g(p) = g(q)) = 1 - [1 - S^K]^L
 ```
 
 Come varia la probabilità al variare di S?  
@@ -479,7 +508,7 @@ Piuttosto che lavorare su blocchi di dimensione statica, SPIMI lavora co posting
 - Finchè memoria è disponibile, viene genrato un token docId termId.
 - Il token viene aggiunto alla posting list
   - Se la posting list è piena (la memoria del blocco allocato temporaneamente è eusarita) allora raddoppio la dimensione del blocco)
-- Una volta terminata la memoria, la posting list viene ordinata e scaricata sulla memoria.
+- Una volta terminata la memoria, la posting list viene ordinata e scaricata sul disco.
 - Come ultimo passo, tutte le liste vengono unite
 
 
@@ -631,3 +660,87 @@ Aggiungendo il carattere *$* alla fine della query e ruotanto i caratteri è pos
 
 Alterare le query in modo che spelling diversi ma con suoni simili diano gli stessi risultati.  
 Si creano set di lettere da sostituire con valori generici. 
+
+
+
+
+# 23.11.2020
+## high idf
+
+## champion lists
+
+## many query-terms
+
+## fancy hits
+
+## clustering
+
+## WAND 
+
+## blocked-WAND.
+
+
+
+- Cos'è LSH and why we introduce it?
+  - How LSH works?
+  - Assume the vector is binary (length D) and the vectors have Q diff, calc S
+  - What if we have a vector of CHAR, we need to change something? 
+  
+- PForDelta
+  - What happen with a sorted array?
+
+- Dice e Jacardi distance?
+  - Perchè è necessario introdurre altri sistemi invece di Jacardi?
+  - Due vettori di interi, come trovare i vettori simili? Contare le posizioni differenti -> Hamming
+  - Modifica dinamica degli indici, tecnica esponenziale -> Logaritmic merge
+  
+- Web Graph -> compressione del grafo, quali proprietà sono richieste?
+- Copy Block, alcuni nodi sono extra, cosa si può dire? (Compressione? delle liste)
+  - Fingerprint Karph Robin
+  - dato un numero a, massimo numero di divisori? Ristosta log(a)
+
+- Test X square
+
+- Indicizzazione (two leve indexing)
+  - trie
+  - Come memorizzare?
+  
+- Due leve indexing -> come funzioana la ricerca in memoria interna sul trie?
+
+- Z delta compression	
+- SPIMI e co
+- soft end, che vuol dire	
+
+FILE aabbaa (new)    aab (old)
+
+- Consisten HASHING
+
+- Zone INDEX
+- COME CAMBIARE LA POSTING LIST PER SUPPORTARE LA QUERY?
+- Heap Laws, Ziph, Luhn
+
+Tecnica per trovare approssimata i TOP-K documenti 
+
+Relazione tra la Overlap distance e la Edit distance
+
+LSH -> online (clust) e offline per un dizionario	
+
+Variable byte = t-nibble
+
+Applicazione del bloom filter, individuazione dei virus
+
+One error dictionary ? 
+
+
+
+
+
+
+WHAT 
+
+cosine sim (11)
+SPIMI
+Pearson’s chi-squared test (16)
+2 lvl ind, come lavoro nei blocchi?
+A cosa servono le inv ind in Overlap Dist?
+Wildcard
